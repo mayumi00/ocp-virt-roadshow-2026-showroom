@@ -102,7 +102,7 @@ OpenShift Virtualizationについてさらに詳しく知りたい場合は、 h
 
 === vCenterへのアクセス
 
-ラボの移行章では、 {vcenter_console}[VMware vSphere^] 環境にログインして確認作業を行うよう指示があります。
+ラボの移行章では、 https://{vcenter_console}[VMware vSphere^] 環境にログインして確認作業を行うよう指示があります。
 
 アクセスには以下の資格情報を使用してください。
 
