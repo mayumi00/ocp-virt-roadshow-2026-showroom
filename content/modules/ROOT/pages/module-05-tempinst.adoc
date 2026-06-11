@@ -1,70 +1,70 @@
-= Template and InstanceType Management
 
-== Introduction
+= テンプレートおよびインスタンスタイプの管理
 
-Pre-configured Red Hat virtual machine templates are listed under *Virtualization* on the *Templates* page. These templates are available for different versions of Red Hat Enterprise Linux, Fedora, CentOS, Microsoft Windows Desktop, and Microsoft Windows Server editions. Each Red Hat associated virtual machine template is preconfigured with an operating system image (boot source), the default settings for the operating system, the flavor (CPU and memory), and the workload type (server). The templates for other operating systems do not include OS images, but are preconfigured as recommended for their operating system. 
+== 導入
 
-The *Templates* page displays four types of virtual machine templates:
+事前に構成されたRed Hat仮想マシンのテンプレートは、**Virtualization（仮想化）** の **Templates（テンプレート）** ページにリストされています。これらのテンプレートは、さまざまなバージョンのRed Hat Enterprise Linux、Fedora、CentOS、Microsoft Windows Desktop、およびMicrosoft Windows Serverエディションで利用可能です。Red Hatに関連付けられた各仮想マシンテンプレートには、オペレーティングシステムイメージ（ブートソース）、オペレーティングシステムのデフォルト設定、フレーバー（CPUとメモリ）、およびワークロードタイプ（サーバー）があらかじめ構成されています。その他のオペレーティングシステム用のテンプレートにはOSイメージは含まれていませんが、そのオペレーティングシステムに推奨される設定があらかじめ構成されています。
 
-* *Red Hat Supported* templates are fully supported by Red Hat.
-* *User Supported* templates are *Red Hat Supported* templates that were cloned and customized by users.
-* *Red Hat Provided* templates have limited support from Red Hat.
-* *User Provided* templates are *Red Hat Provided* templates that were cloned and customized by users.
+**Templates** ページには、4つのタイプの仮想マシンテンプレートが表示されます。
 
-[[prepare_templates_lab]]
-== Prepare for the lab
+* **Red Hat Supported（Red Hat サポート対象）**: Red Hatによって完全にサポートされているテンプレートです。
+* **User Supported（ユーザーサポート対象）**: ユーザーによってクローンおよびカスタマイズされた「Red Hat Supported」テンプレートです。
+* **Red Hat Provided（Red Hat 提供）**: Red Hatによる限定的なサポートが提供されるテンプレートです。
+* **User Provided（ユーザー提供）**: ユーザーによってクローンおよびカスタマイズされた「Red Hat Provided」テンプレートです。
 
-. The tasks that we are about to perform will require us to provision a few additional VMs. In preparation we are going to ask that you shut down the existing *fedora01* and *fedora02* virtual machines to ensure that your shared environment has enough resources to complete the lab.
+== ラボの準備
 
-. Navigate to *Virtualization* perspective in the left-side menu and then click on *Virtualmachines*.
-. Each project that you have access to that is hosting VM workloads will be listed in the center column treeview. (At a minimum you should expand projects *vmimported-{user}* and *vmexamples-{user}* to check virtual machine status.)
-. If any VMs are showing a status of *Running*, highlight the VM in the center tree column, and select the *Stop* button or option from the *Actions* dropdown menu..
+. これから実行するタスクでは、いくつかの追加のVMをプロビジョニングする必要があります。準備として、共有環境にラボを完了するための十分なリソースを確保するために、既存の *fedora01* および *fedora02* 仮想マシンをシャットダウンしてください。
 
-Now all VMs should be in *Stopped* state.
+. 左側メニューで **Virtualization（仮想化）** パースペクティブに移動し、**VirtualMachines（仮想マシン）** をクリックします。
+. VMワークロードをホストしており、アクセス権を持っている各プロジェクトが、中央の列のツリービューにリストされます。（仮想マシンのステータスを確認するために、少なくとも **vmimported-{user}** と **vmexamples-{user}** プロジェクトを展開する必要があります。）
+. いずれかのVMが **Running（実行中）** のステータスを示している場合は、中央のツリー列でそのVMをハイライト（選択）し、**Stop（停止）** ボタンまたは **Actions（アクション）** ドロップダウンメニューのオプションを選択して停止します。
+
+これで、すべてのVMが **Stopped（停止済み）** 状態になります。
 
 image::2026_spring/module-05-tempinst/00_VMs_Stopped.png[link=self, window=blank, width=100%]
 
-[[clone_customize_template]]
-== Clone and Customize a Template
+== テンプレートのクローンとカスタマイズ
 
-By default the pre-configured templates provided by Red Hat OpenShift Virtualization cannot be customized. However you can clone a template and make adjustments to it for your particular workload in order to make it easier to request specific types of virtual machines for specific workloads. In this section of the lab we are going to do just this, by creating a template that will provide a preconfigured database server on demand for our end users.
+デフォルトでは、Red Hat OpenShift Virtualizationによって提供される事前に構成されたテンプレートを直接カスタマイズすることはできません。しかし、テンプレートをクローンして特定のワークロードに合わせて調整を行うことで、特定業務向けの特定の仮想マシンタイプを簡単に要求（プロビジョニング）できるようになります。このラボのセクションでは、エンドユーザー向けに、事前構成されたデータベースサーバーをオンデマンドで提供するテンプレートを作成して、まさにこの作業を実行します。
 
-. To begin, click on *Templates* in the left-side menu, and  select *openshift* for your project. You may need to toggle the *Show default projects* button in order for the *openshift* project to appear.
+. まず、左側メニューの **Templates（テンプレート）** をクリックし、プロジェクトとして **openshift** を選択します。*openshift* プロジェクトを表示させるために、**Show default projects（デフォルトプロジェクトの表示）** ボタンのトグルをオンにする必要がある場合があります。
 +
 image::2026_spring/module-05-tempinst/01_Default_Projects.png[link=self, window=blank, width=100%]
 +
 image::2026_spring/module-05-tempinst/01_Template_List.png[link=self, window=blank, width=100%]
 
-. In the search bar type in *centos9* and press Enter. In the list of templates that appear find the template for *centos-stream9-server-small*.
+. 検索バーに `centos9` と入力して Enter キーを押します。表示されたテンプレートのリストから、**centos-stream9-server-small** のテンプレートを探します。
 +
 image::2026_spring/module-05-tempinst/02_Search_Centos9.png[link=self, window=blank, width=100%]
 
-. Click on the template name for *centos-stream9-server-small*, you will be prompted with a message that default templates cannot be edited and asked if you'd like to clone. Click the *Create a new custom Template* option.
+. テンプレート名 **centos-stream9-server-small** をクリックすると、デフォルトのテンプレートは編集できない旨のメッセージが表示され、クローンするかどうかを尋ねられます。**Create a new custom Template（新しいカスタムテンプレートの作成）** オプションをクリックします。
 +
 image::2026_spring/module-05-tempinst/03_Create_Custom_Template.png[link=self, window=blank, width=100%]
 
-. A new menu called *Clone template* will appear, fill in the the following values, and when finished click on the *Clone* button.
+. **Clone template（テンプレートのクローン）** という新しいメニューが表示されます。以下の値を入力し、完了したら **Clone（クローン）** ボタンをクリックします。
 +
-* *Template name:* centos-stream9-server-db-small
-* *Template project:* vmexamples-{user}
-* *Template display name:* CentOS Stream 9 VM - Database Template Small
-* *Template provider:* Roadshow {user}
-+
+
+* **Template name（テンプレート名）**: `centos-stream9-server-db-small`
+* **Template project（テンプレートのプロジェクト）**: `vmexamples-{user}`
+* **Template display name（テンプレートの表示名）**: `CentOS Stream 9 VM - Database Template Small`
+* **Template provider（テンプレートプロバイダー）**: `Roadshow {user}`
+
 image::2026_spring/module-05-tempinst/04_Clone_Template_Options.png[link=self, window=blank, width=100%]
 
-. This will take you to the *Details* page for the template where we will be able to customize some options. Start by finding the CPU and Memory near the bottom of the page, and click on the pencil icon to edit it.
+. クローンしたテンプレートの **Details（詳細）** ページに移動し、ここでいくつかのオプションをカスタマイズできます。まず、ページの下部付近にある CPU と Memory の項目を探し、鉛筆アイコンをクリックして編集します。
 +
 image::2026_spring/module-05-tempinst/05_Clone_Details.png[link=self, window=blank, width=100%]
 
-. A new window will pop out where you can edit the amount of CPU and Memory. For our custom template set the value of CPUs to 2, and Memory to 4 GiB, and click the *Save* button.
+. 新しいウィンドウがポップアウトし、CPU とメモリの量を編集できます。このカスタムテンプレートでは、CPUs（CPU数）の値を `2` に、Memory（メモリ）を `4 GiB` に設定し、**Save（保存）** ボタンをクリックします。
 +
 image::2026_spring/module-05-tempinst/06_Edit_CPU_Mem.png[link=self, window=blank, width=100%]
 
-. Next click on the *Scripts* tab at the top, and in the section called *Cloud-init* click the *Edit* button.
+. 次に、上部にある **Scripts（スクリプト）** タブをクリックし、**Cloud-init** というセクションにある **Edit（編集）** ボタンをクリックします。
 +
 image::2026_spring/module-05-tempinst/09_Scripts_CloudInit.png[link=self, window=blank, width=100%]
 
-. When the *Cloud-init* dialog opens, click the radio button to *Configure via: Script* then *replace* the YAML with the following YAML snippet.
+## . **Cloud-init** ダイアログが開いたら、**Configure via: Script（スクリプト経由で構成）** のラジオボタンをクリックし、デフォルトの YAML を以下の YAML スニペットで **置き換え（置換）** ます。
 +
 [source,yaml,role=execute]
 ----
@@ -79,82 +79,88 @@ userData: |-
     - systemctl enable mariadb
     - systemctl start mariadb
 ----
-+
+
 image::2026_spring/module-05-tempinst/10_Cloud_Init_Script.png[link=self, window=blank, width=100%]
 
-. Click the *Save* button, you will see a green *Saved* prompt, then follow that by clicking the *Apply* button.
+. **Save（保存）** ボタンをクリックすると、緑色で **Saved（保存されました）
+** と表示されます。続いて **Apply（適用）** ボタンをクリックします。
 
-. Now click on the *Catalog* item on the left-side menu, select the *Template catalog* option, followed by *User templates*. You should see your created template available as a tile.
+. ここで左側メニューの **Catalog（カタログ）** 項目をクリックし、**Template catalog（テンプレートカタログ）** タブを選択してから、**User templates（ユーザーテンプレート）** を選択します。作成したテンプレートがタイルとして利用可能になっていることが確認できます。
 +
 image::2026_spring/module-05-tempinst/11_User_Templates.png[link=self, window=blank, width=100%]
 
-. Click on the tile and you will be prompted with the VM startup screen. Click the *Quick create VirtualMachine* button.
+. タイルをクリックすると、VM起動画面が表示されます。**Quick create VirtualMachine（VirtualMachineのクイック作成）** ボタンをクリックします。
 +
 image::2026_spring/module-05-tempinst/12_Quick_Create_Template.png[link=self, window=blank, width=100%]
 
-. When the virtual machine boots you can see on the *Overview* page that it was created from our template, and has the additional resources we defined. We just need to verify that it installed *MariaDB* for us.
+. 仮想マシンが起動すると、**Overview（概要）** ページで、作成したテンプレートから作成され、定義した追加リソースが反映されていることを確認できます。あとは、**MariaDB** が正常にインストールされたかどうかを検証するだけです。
 +
 image::2026_spring/module-05-tempinst/13_VM_From_Template.png[link=self, window=blank, width=100%]
 
-. Click on the *Console* tab at the top and use the *Guest login credentials* that are provided and the *Copy* and *Paste to console* buttons to log into the console of the virtual machine.
+. 上部にある **Console（コンソール）** タブをクリックし、提供されている **Guest login credentials（ゲストログイン資格情報）** と、**Copy** および **Paste to console（コンソールに貼り付け）** ボタンを使用して、仮想マシンのコンソールにログインします。
 +
 image::2026_spring/module-05-tempinst/14_VM_Console.png[link=self, window=blank, width=100%]
 
-. Once you are logged into the virtual machine, run the following command to test the install of MariaDB.
+. 仮想マシンにログインしたら、以下のコマンドを実行して MariaDB のインストールをテストします。
 +
 [source,sh,role=execute]
 ----
 sudo mysql -u root
 ----
-+
+
 image::2026_spring/module-05-tempinst/15_MariaDB_Login.png[link=self, window=blank, width=100%]
 
-. Hit *Ctrl-D* twice to log out of the VM.
+. **Ctrl-D** を2回押して、VMからログアウトします。
 
-[[create_win]]
-== Create a Windows VM Template
+== Windows VMテンプレートの作成
 
-In this segment of our lab, we will install Microsoft Windows Server 2022 using an ISO hosted on a web server. This represents one way to install an operating system to a virtual machine that takes advantage of the ability to source disks from many locations, including a web server, object storage, or other persistent volumes in the cluster.
+このラボのセクションでは、Webサーバーにホストされている ISO イメージを使用して Microsoft Windows Server 2022 をインストールします。これは、Webサーバー、オブジェクトストレージ、またはクラスター内の他の永続ボリュームを含む、多くの場所からディスクを調達できる機能を利用して、仮想マシンにオペレーティングシステムをインストールする手法の1つを示しています。
 
-This process can be streamlined after the initial operating system installation by creating a cloned root disk from a sysprepped virtual machine to use with other templates. 
+このプロセスは、最初のオペレーティングシステムのインストール後に、他のテンプレートで使用できるように sysprep（システム準備）済みの仮想マシンからクローンされたルートディスクを作成することで合理化できます。
 
-NOTE: The specific process for preparing the guest operating system to be used as a template will vary, be sure to follow your organization's guidelines and requirements when preparing a template OS.
+[NOTE]
+====
+ゲストオペレーティングシステムをテンプレートとして使用するために準備する具体的なプロセスは異なります。テンプレートOSを準備する際は、必ず組織のガイドラインや要件に従ってください。
+====
 
-. From the left menu, navigate to *Catalog*, and click on the *Template catalog* tab near the top..
+. 左側メニューから **Catalog（カタログ）** に移動し、上部付近にある **Template catalog（テンプレートカタログ）** タブをクリックします。
 
-. Type the word *win* in the search bar, or scroll down until you find the *Microsoft Windows Server 2022 VM* tile.
+. 検索バーに `win` という単語を入力するか、下へスクロールして **Microsoft Windows Server 2022 VM** のタイルを見つけます。
 +
 image::2026_spring/module-05-tempinst/16_Windows_2k22_Tile.png[link=self, window=blank, width=100%]
 
-. A dialog will appear showing the default configuration related to the template.
+. テンプレートに関連するデフォルトの構成を示すダイアログが表示されます。
 +
-NOTE: Notice that there is initially no option to quick create this VM because there is no provided boot source. We must customize the VM to fit our needs.
-+
+[NOTE]
+====
+提供されているブートソースがないため、初期状態ではこのVMをクイック作成するオプションが表示されないことに注意してください。ニーズに合わせてVMをカスタマイズする必要があります。
+====
+
 image::2026_spring/module-05-tempinst/17_Windows_2k22_Dialog.png[link=self, window=blank, width=100%]
 +
-. In this dialog:
-* Specify the name *win-sysprep*
-* Enable the checkbox *Boot from CD*
-* Choose *URL (creates PVC)* from the drop-down menu
-* Specify the *image URL*: https://catalog-item-assets.s3.us-east-2.amazonaws.com/qcow_images/WINSERV22.iso
-* Reduce the CD disk size to *5 GiB*
-* Keep the *Disk source* as *Blank* and the size set to the default value *60 GiB*
-* Ensure the *Mount Windows drivers disk* checkbox is enabled. **This is required to install Windows systems, which will provide the drivers for VirtIO.**
-+
+. このダイアログ内で：
 
-. With the options filled out, we want to click on the *Customize VirtualMachine* button at the bottom to continue configuring our Template.
+* 名前に `win-sysprep` と指定します。
+* **Boot from CD（CDから起動）** のチェックボックスを有効にします。
+* ドロップダウンメニューから **URL (creates PVC)** を選択します。
+* **image URL（イメージURL）** に以下を指定します： `https://catalog-item-assets.s3.us-east-2.amazonaws.com/qcow_images/WINSERV22.iso`
+* CDのディスクサイズを **5 GiB** に縮小します。
+* **Disk source（ディスクソース）** は **Blank（空）** のままとし、サイズはデフォルト値の **60 GiB** に設定します。
+* **Mount Windows drivers disk（Windowsドライバーディスクのマウント）** のチェックボックスが有効になっていることを確認します。**これは、VirtIO用のドライバーを提供するものであり、Windowsシステムをインストールするために必須となります。**
+
+. オプションを入力したら、画面下部にある **Customize VirtualMachine（VirtualMachineのカスタマイズ）** ボタンをクリックして、テンプレートの構成を続行します。
 +
 image::2026_spring/module-05-tempinst/18_Windows_2k22_Parameters.png[link=self, window=blank, width=100%]
 
-. On the *Customize and create VirtualMachine* screen, click on the *Scripts* tab, and then scroll down to the *Sysprep* section and click on the *Edit* button.
+. **Customize and create VirtualMachine（仮想マシンのカスタマイズと作成）** 画面で、**Scripts（スクリプト）** タブをクリックし、下へスクロールして **Sysprep** セクションに移動し、**Edit（編集）** ボタンをクリックします。
 +
 image::2026_spring/module-05-tempinst/20_Customize_Scripts.png[link=self, window=blank, width=100%]
 
-. A new window will pop up for you to create *Sysprep* actions for your new template.
+. 新しいテンプレートの **Sysprep** アクションを作成するための新しいウィンドウがポップアップ表示されます。
 +
 image::2026_spring/module-05-tempinst/21_Sysprep.png[link=self, window=blank, width=100%]
 
-. Copy and paste the following code block, which helps to automate the installation and configuration of the Windows server into the *Autounattend.xml* section:
+. 以下のコードブロックをコピーして、**Autounattend.xml** セクションに貼り付けます。これにより、Windowsサーバーのインストールと構成を自動化することができます。
 +
 [source,xml,role=execute]
 ----
@@ -448,119 +454,125 @@ image::2026_spring/module-05-tempinst/21_Sysprep.png[link=self, window=blank, wi
 </unattend>
 ----
 
-. Once the code is pasted, click the *Save* button on the dialog.
+. コードを貼り付けたら、ダイアログの **Save（保存）** ボタンをクリックします。
 +
 image::2026_spring/module-05-tempinst/22_Windows_2k22_Sysprep.png[link=self, window=blank, width=100%]
 
-. With the Sysprep in place, click the *Create VirtualMachine* button at the bottom of the screen.
+. Sysprep の設定が完了したら、画面下部にある **Create VirtualMachine（VirtualMachineの作成）** ボタンをクリックします。
 +
 image::2026_spring/module-05-tempinst/23_Create_VirtualMachine.png[link=self, window=blank, width=100%]
 
-. The Virtual Machine will start the provisioning process by downloading the ISO image, configuring, and starting the instance.
+. 仮想マシンは、ISO イメージのダウンロード、構成、およびインスタンスの起動を行うことで、プロビジョニングプロセスを開始します。
 +
 image::2026_spring/module-05-tempinst/24_Windows_2k22_Provisioning.png[link=self, window=blank, width=100%]
 
-. This process may take a few minutes due to needing to download the boot ISO image. You can check on the progress of the download by clicking the *Diagnostics* tab.
+. ブート用の ISO イメージをダウンロードする必要があるため、このプロセスには数分かかる場合があります。ダウンロードの進行状況は、**Diagnostics（診断）** タブをクリックして確認できます。
 +
 image::2026_spring/module-05-tempinst/25_CD_Import.png[link=self, window=blank, width=100%]
 
-. After a few moments, the virtual machine will enter the *Starting* state, and the status will change to *Running*. When you see this, click  to the *Console* tab and press the *Enter* key when prompted to boot to CD. Watch the unattended installation process complete.
+. しばらくすると、仮想マシンが **Starting（起動中）** 状態に入り、ステータスが **Running（実行中）** に変わります。これが確認できたら、**Console（コンソール）** タブをクリックし、CDから起動するようプロンプトが表示されたら **Enter** キーを押します。自動応答インストール（Unattended Installation）プロセスが完了するのを見守ります。
 +
-NOTE: If you miss your chance to 'Press Enter to Boot to CD/DVD', you can retry by force-stopping the machine and starting it back up. The restart button does not work for this process as it skips the initial boot stage.
+[NOTE]
+====
+「Press Enter to Boot to CD/DVD（CD/DVDから起動するにはEnterを押してください）」のタイミングを逃してしまった場合は、マシンを強制停止（Force stop）して再度起動することでやり直せます。再起動（Restart）ボタンを使用すると初期起動ステージがスキップされてしまうため、このプロセスでは機能しません。
+====
 +
 image::2026_spring/module-05-tempinst/26_Windows_2k22_Console.png[link=self, window=blank, width=100%]
 
-. Once the VM installation process is complete (provisioning will take 3-5 minutes, starting and configuring will take about 10 minutes), go ahead and power it off with the stop button.
+. VMのインストールプロセスが完了したら（プロビジョニングに3〜5分、起動と構成に約10分かかります）、停止ボタン（Stop）を使用して電源をオフにします。
 +
 image::2026_spring/module-05-tempinst/27_Stop_Button.png[link=self, window=blank, width=100%]
 
-. With the machine powered down we want to make a clone of the root volume that we can use for future Windows template-based installs, without having to run through the customization process each time.
+. マシンの電源が切れた状態で、毎回カスタマイズプロセスを実行する必要をなくすために、将来のWindowsテンプレートベースのインストールで使用できるルートボリュームのクローンを作成します。
 +
-NOTE: Having a dedicated clone of the original installation disk to use for future deployments is helpful so that the original disk does not get accidentally deleted if the machine it is connected to does.
+[NOTE]
+====
+将来のデプロイメントに使用するために、元のインストールディスクの専用クローンを用意しておくと、接続されているマシンが削除されても元のディスクが誤って削除されるのを防ぐことができるため便利です。
+====
 
-. On the left-side menu, click on *Storage* and then *PersistentVolumeClaims* to see a list of PVCs available in the *vmexamples-{user}* namespace. 
+. 左側メニューの **Storage（ストレージ）** -> **PersistentVolumeClaims（永続ボリューム要求）** をクリックして、**vmexamples-{user}** ネームスペース内で利用可能な PVC の一覧を表示します。
 
-. Find the *win-sysprep* PVC created with our installation, and using the three-dot menu on the right select *Clone PVC*.
+. インストール時に作成された **win-sysprep** の PVC を見つけ、右側にある3つのドットのメニューを使用して **Clone PVC（PVC のクローン）** を選択します。
 +
 image::2026_spring/module-05-tempinst/28_Storage_PVC.png[link=self, window=blank, width=100%]
 
-. On the menu that pops up, fill in the following options, then click the *Clone* button:
-* *Name*: windows-2k22-sysprep-template
-* *Access mode*:  Shared access (RWX) 
-* *StorageClass*: ocs-external-storagecluster-ceph-rbd
+. ポップアップ表示されるメニューで、以下のオプションを入力し、**Clone（クローン）** ボタンをクリックします。
+
+* **Name（名前）**: `windows-2k22-sysprep-template`
+* **Access mode（アクセスモード）**: `Shared access (RWX)`（共有アクセス）
+* **StorageClass（ストレージクラス）**: `ocs-external-storagecluster-ceph-rbd`
+
 +
 image::2026_spring/module-05-tempinst/29_Clone_Menu.png[link=self, window=blank, width=100%]
 
-. Once this is saved, you can use it to quickly create Windows VMs in the future.
+. これが保存されると、将来的に Windows VM を迅速に作成するために使用できるようになります。
 
-. Return to the *Virtualization -> Catalog* menu item, and use this cloned PVC as a boot source for quick-creating new virtual machines by selecting the option for *PVC (clone PVC)* as the *Disk source*, and selecting the *Windows-2k22-Sysprep-Template* PVC as the *PVC name* to clone.
+. 再び **Virtualization -> Catalog（カタログ）** メニュー項目に戻り、**Disk source（ディスクソース）** として **PVC (clone PVC)** オプションを選択し、クローンする **PVC name（PVC 名）** として **windows-2k22-sysprep-template** PVC を選択することで、このクローンされた PVC をブートソースとして使用し、新しい仮想マシンをクイック作成できます。
 +
 image::2026_spring/module-05-tempinst/30_Windows_Template.png[link=self, window=blank, width=100%]
 +
 image::2026_spring/module-05-tempinst/31_Windows_Clone_PVC.png[link=self, window=blank, width=100%]
 
-. In a few moments the new Windows Server 2022 virtual machine will boot up from our cloned PVC.
+. 数分で、新しい Windows Server 2022 仮想マシンがクローンされた PVC から起動します。
 +
 image::2026_spring/module-05-tempinst/32_Windows_Template_Running.png[link=self, window=blank, width=100%]
 
-[[instance_types]]
-== Introduction to Instance Types
+== インスタンスタイプの導入
 
-In order to simplify the deployment process for virtual machines, starting with OpenShift 4.14 the default configuration mechanism was changed to emphasize the use of *Instance Types*. An instance type is a reusable object where you can define resources and characteristics to apply to a new VM. You can define custom instance types or use the variety that are included when you install OpenShift Virtualization when provisioning your own VM. This is much more akin to what users experience when using a self-service catalog in popular cloud providers.
+仮想マシンのデプロイプロセスを簡素化するために、OpenShift 4.14 以降、デフォルトの構成メカニズムは **Instance Types（インスタンスタイプ）** の使用を強調するように変更されました。インスタンスタイプとは、新しい VM に適用するリソースや特性を定義できる、再利用可能なオブジェクトです。独自の VM をプロビジョニングする際に、カスタムのインスタンスタイプを定義することも、OpenShift Virtualization のインストール時に標準で含まれているさまざまなインスタンスタイプを使用することもできます。これは、一般的なクラウドプロバイダーでセルフサービスカタログを使用する際のユーザー体験に酷似しています。
 
-This section explores provisioning a VM using an instance type.
+このセクションでは、インスタンスタイプを使用して VM をプロビジョニングする方法について探索します。
 
-. To get started click on *Catalog* on the left-side menu. You will see the default catalog item is *InstanceType*.
+. 開始するには、左側メニューの **Catalog（カタログ）** をクリックします。デフォルトのカタログ項目が **InstanceType** になっていることが確認できます。
 +
 image::2026_spring/module-05-tempinst/33_Left_Menu_Catalog.png[link=self, window=blank, width=100%]
 
-. The first step in using an instance type is to select a volume to boot from. Similar to the templates that provide boot sources, these boot sources are available to use for guests provisioned with an InstanceType. You can see the included volumes by selecting the *openshift-virtualization-os-images* project, or you can upload your own with the *Add volume* button.
+. インスタンスタイプを使用する最初のステップは、起動元のボリューム（Volume）を選択することです。ブートソースを提供するテンプレートと同様に、これらのブートソースは InstanceType でプロビジョニングされたゲストでも使用できます。**openshift-virtualization-os-images** プロジェクトを選択することで、含まれているボリュームを確認できます。また、**Add volume（ボリュームの追加）** ボタンを使用して独自のボリュームをアップロードすることもできます。
 +
 image::2026_spring/module-05-tempinst/34_Volume_Boot.png[link=self, window=blank, width=100%]
 
-. Click on the *rhel10* boot volume to select it as the volume type to boot from. Selecting it will be denoted by the line being changed to a bold font.
+. **rhel10** ブートボリュームをクリックして、起動元のボリュームタイプとして選択します。選択されると、該当行のフォントが太字に変わります。
 +
 image::2026_spring/module-05-tempinst/35_Select_RHEL10.png[link=self, window=blank, width=100%]
 
-. Next you can select the instance type you would like to use. There are Red Hat provided instance types by default, or you can create your own for your specific use case. If you hover over a provided instance type you can see a description of its intended use.
+. 次に、使用したいインスタンスタイプを選択できます。デフォルトで Red Hat 提供のインスタンスタイプが用意されているほか、特定のユースケースに合わせて独自のインスタンスタイプを作成することもできます。提供されているインスタンスタイプにカーソルを合わせると、その想定される用途の説明を確認できます。
 +
 image::2026_spring/module-05-tempinst/36_Select_InstanceType.png[link=self, window=blank, width=100%]
 +
-* The Red Hat provided instance types are intended for the following uses:
-** *N series*: Designed for network intensive DPDK workloads like VNFs.
-** *O series*: Specialized general purpose instance type with memory overcommit preconfigured.
-** *M series*: Designed for memory intensive workloads.
-** *RT series*: Designed for realtime virtualization use cases.
-** *D series*: Designed to be used with dedicated or pinned CPU workloads.
-** *CX series*: Designed for compute intensive workloads by requesting additional dedicated CPUs for additional function offload.
-** *U series*: The most general purpose or "universal" instance type.
 
-. Click on the *U series* tile to see a dropdown list of defined resources for general instance types. The default option here is *medium: 1 CPUs, 4 GiB Memory*. Select it. Again selection will be indicated by a blue line, and a bolding of the font for the instance type.
+* Red Hat が提供するインスタンスタイプは、以下の用途を想定しています：
+ **N シリーズ**: VNF（仮想ネットワーク機能）などのネットワーク集約型の DPDK ワークロード向けに設計されています。
+ **O シリーズ**: メモリのオーバーコミットがあらかじめ構成された、特化型の汎用インスタンスタイプです。
+ **M シリーズ**: メモリ集約型のワークロード向けに設計されています。
+ **RT シリーズ**: リアルタイム仮想化のユースケース向けに設計されています。
+ **D シリーズ**: 専用またはピン留めされた CPU ワークロードで使用するために設計されています。
+ **CX シリーズ**: 追加の機能オフロード用に追加の専用 CPU を要求することで、コンピューティング集約型のワークロード向けに設計されています。
+ **U シリーズ**: 最も一般的な汎用（ユニバーサル）のインスタンスタイプです。
+
+. **U シリーズ** のタイルをクリックすると、一般的なインスタンスタイプ用に定義されたリソースのドロップダウンリストが表示されます。ここでのデフォルトオプションは **medium: 1 CPUs, 4 GiB Memory** です。これを選択します。選択されると、インスタンスタイプのフォントが太字になり、青い線で示されます。
 +
 image::2026_spring/module-05-tempinst/37_InstanceType_Resources.png[link=self, window=blank, width=100%]
 
-. The last section that needs to be completed when provisioning using an instance type is similar to the template section. You need to provide a name for the virtual machine, and select the storage class to be used for a backing disk. By default, a name will be generated for the VM, and the default storage class will be selected. When you are satisfied, click the *Create VirtualMachine* button.
+. インスタンスタイプを使用してプロビジョニングを行う際に完了する必要がある最後のセクションは、テンプレートのセクションと似ています。仮想マシンの名前を指定し、バッキングディスクに使用するストレージクラスを選択する必要があります。デフォルトでは、VM の名前が自動生成され、デフォルトのストレージクラスが選択されます。問題がなければ、**Create VirtualMachine（VirtualMachineの作成）** ボタンをクリックします。
 +
 image::2026_spring/module-05-tempinst/38_VM_Details.png[link=self, window=blank, width=100%]
 
-. You will be directed to the virtual machine overview page, and see that the VM provisioned using an instance type is now up and running.
+. 仮想マシンの概要ページにリダイレクトされ、インスタンスタイプを使用してプロビジョニングされた VM が正常に起動し、実行中であることが確認できます。
 +
 image::2026_spring/module-05-tempinst/39_VM_Overview.png[link=self, window=blank, width=100%]
 
-[[cleanup]]
-== Cleanup
+== クリーンアップ
 
-To save resources for the next lab, please stop any VMs that you created in this module.
+次のラボのためにリソースを節約するため、このモジュールで作成したすべての VM を停止してください。
 
-. Click on *Virtualization -> VirtualMachines*.
-. Each project that you have access to that is hosting VM workloads will be listed in the center column treeview. (At a minimum you should expand the projects *vmexamples-{user}* and *vmimported-{user}* to check virtual machine status.)
-. If any VMs are showing a status of *Running*, highlight the VM in the center tree column, and select the *Stop* button or option from the *Actions* dropdown menu.
+. **Virtualization -> VirtualMachines** をクリックします。
+. VMワークロードをホストしており、アクセス権を持っている各プロジェクトが、中央の列のツリービューにリストされます。（仮想マシンのステータスを確認するために、少なくとも **vmexamples-{user}** と **vmimported-{user}** プロジェクトを展開する必要があります。）
+. いずれかのVMが **Running（実行中）** のステータスを示している場合は、中央のツリー列でそのVMをハイライト（選択）し、**Stop（停止）** ボタンまたは **Actions（アクション）** ドロップダウンメニューのオプションを選択して停止します。
 
-Now all VMs should be in *Stopped* state.
+これで、すべてのVMが **Stopped（停止済み）** 状態になります。
 
 image::2026_spring/module-05-tempinst/40_All_Stopped.png[link=self, window=blank, width=100%]
 
+== まとめ
 
-== Summary
-
-In this section we learned how to clone and customize an existing template to create one that can be used for specific workloads like databases. We also learned how to configure one of the existing Windows templates that exists without a boot source, and automate it's installation process, so we can create future deployments easily by cloning the installation PVC that was created with that VM. We also introduced how to make use of instance types to further customize our virtual machines for specific workloads for a more cloud-like experience.
+このセクションでは、既存のテンプレートをクローンしてカスタマイズし、データベースなどの特定のワークロードに使用できるテンプレートを作成する方法を学びました。また、ブートソースのない既存の Windows テンプレートの1つを構成し、そのインストールプロセスを自動化する方法を学びました。これにより、そのVMで作成されたインストール PVC をクローンすることで、将来のデプロイメントを簡単に作成できるようになります。さらに、インスタンスタイプを利用して、特定のワークロードに合わせて仮想マシンをさらにカスタマイズし、よりクラウドに近い利用体験を実現する方法についても紹介しました。
