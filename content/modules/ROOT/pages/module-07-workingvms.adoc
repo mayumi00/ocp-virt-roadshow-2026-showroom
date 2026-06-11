@@ -1,61 +1,70 @@
-= Working with Virtual Machines and Applications
 
-== Introduction
+= 仮想マシンとアプリケーションの連携
 
-This section of our lab is dedicated to the Day-2 operations that many administrators would need to perform when working with virtual machines in their OpenShift Virtualization environment. We will make use of the understanding we have developed throughout this roadshow of how VMs operate in an OpenShift environment, and use those skills to complete the tasks in this section. In this particular case, we are going to work with the three virtual machines that we imported from VMware vSphere earlier in this roadshow, and we are going to make some minor configuration changes to enable the applications hosted on those servers to be accessed as they now run in OpenShift Virtualization. To accomplish this, we will expose our applications using the service/route method that is the default when making use of the OpenShift SDN pod network so that the application is reachable from outside of the cluster. Doing so provides a more modernized approach to virtual machine management by directly exposing the applications that reside on the VMs.
+== 導入
 
-IMPORTANT: If you have not completed the module *Migrating Existing Virtual Machines*, it is recommended that you do that module first. If you have not completed it, or if the migration process is still pending, you can complete this section by using the pre-existing virtual machines that have been staged for you for you in the *vmimported-{user}* project. Please skip to the appropriate section below based on if you are working with xref:module-07-workingvms.adoc#service_route_imported[MTV-imported VMs] or with xref:module-07-workingvms.adoc#service_route_staged[Staged VMs].
+このラボのセクションは、多くの管理者がOpenShift Virtualization環境で仮想マシンを操作する際に実行する必要がある「Day 2運用（運用フェーズのタスク）」に特化しています。このロードショーを通じて培ってきた、OpenShift環境でVMがどのように動作するかという理解を活用し、それらのスキルを使ってこのセクションのタスクを完了させます。今回の具体的なケースでは、このロードショーの前のセクションでVMware vSphereからインポートした3台の仮想マシンを使用し、それらのサーバーでホストされているアプリケーションがOpenShift Virtualizationで動作するにあたり、外部からアクセスできるようにするためのマイナーな構成変更を行います。これを達成するために、OpenShiftのSDNポッドネットワークを使用する際のデフォルトである「Service（サービス）／Route（ルート）」方式を使用してアプリケーションを公開し、クラスターの外部からアプリケーションに到達できるようにします。これにより、VM内に常駐するアプリケーションを直接外部公開するという、よりモダンなアプローチによる仮想マシン管理を体験できます。
 
+[IMPORTANT]
+====
+「既存の仮想マシンの移行」モジュールを完了していない場合は、まずそのモジュールを実行することをお勧めします。まだ完了していない場合、または移行プロセスがまだ保留中の場合は、**vmimported-{user}** プロジェクトにあらかじめ用意（ステージング）されている既存の仮想マシンを使用して、このセクションを完了することができます。xref:module-07-workingvms.adoc#service_route_imported[MTVでインポートしたVM] を使用するか、xref:module-07-workingvms.adoc#service_route_staged[ステージング済みのVM] を使用するかに応じて、以下の該当するセクションまでスキップしてください。
+====
 
 [[service_route_imported]]
-== Exposing an Application with a Service/Route - MTV-Imported VMs
+== サービス／ルートによるアプリケーションの公開 - MTVインポートVMの場合
 
-As we mentioned earlier, by default, virtual machines are connected to the SDN, which is a convenient and easy way to give them access to the rest of the network. However, it can be challenging for the virtual machines, and other pods in the OpenShift cluster, to find and connect to the virtualized applications. To solve this, we will use a *Service* to balance connections across the two Windows-based web servers, and create a DNS entry for each service discovery, then create a *Route* to allow external clients to access the application hosted within the virtual machines.
+前述の通り、デフォルトでは仮想マシンはSDN（ポッドネットワーク）に接続されており、これはネットワークの残りの部分へのアクセスを付与するための便利で簡単な方法です。しかし、仮想マシンやOpenShiftクラスター内の他のポッドにとって、仮想化されたアプリケーションを検出して接続することは困難な場合があります。これを解決するために、**Service（サービス）** を使用して2台のWindowsベースのWebサーバー間で接続の負荷分散（ロードバランス）を行い、サービス検出用のDNSエントリを作成した上で、外部のクライアントが仮想マシン内でホストされているアプリケーションにアクセスできるようにするための **Route（ルート）** を作成します。
 
-=== Introduction to Services
+=== サービス（Service）の導入
 
-The *Service* identifies the source/target for traffic, and directs clients to the endpoints based on labels. Currently, the VMs do not have a label assigned yet.
+**Service** はトラフィックの送信元／送信先を識別し、ラベル（Label）に基づいてクライアントをエンドポイント（ポッド／VM）に誘導します。現時点では、これらのVMにはまだラベルが割り当てられていません。
 
-In order to successfully associate the  VMs with the Service, we need to do the following:
+VMをサービスに正常に関連付けるには、以下の作業を行う必要があります。
 
-* Add a label to the VMs. We will use the same label for both Windows IIS servers because they are both behind the same load balancer.
-* Create the service to make the two Windows IIS servers available for other workloads on the cluster. OpenShift will automatically make the load balancer internally accessible using the name of the Service as the DNS name.
-* Make the service available outside of OpenShift by creating a *Route*.
+* VMにラベルを追加する。2台のWindows IISサーバーは双方とも同じロードバランサーの背後に配置されるため、双方に同じラベルを使用します。
+* 2台のWindows IISサーバーをクラスター上の他のワークロードから利用できるようにするためのサービスを作成する。OpenShiftは、サービスの名称をDNS名として使用し、ロードバランサーに内部アクセスできるように自動構成します。
+* **Route** を作成して、OpenShiftの外部からサービスを利用できるようにする。
 
-To begin, we'll add labels to the virtual machines by modifying their definition in the OpenShift Virtualization GUI.
+まずは、OpenShift VirtualizationのGUIで仮想マシンの定義を変更し、ラベルを追加することから始めましょう。
 
+=== 仮想マシンへのラベル付与
 
-=== Label the Virtual Machines
-
-. Click on *Virtualization -> VirtualMachines* in the left-side menu, click on the *vmexamples-{user}* project and *Start* your three imported virtual machines: *database-{user}, winweb01-{user}, and winweb02-{user}*, if they are not already running. You can verify this easily by sorting by the *Status* column in the right-side tree view.
+. 左側メニューの **Virtualization（仮想化） -> VirtualMachines（仮想マシン）** をクリックし、**vmexamples-{user}** プロジェクトをクリックして、インポートした3台の仮想マシン（**database-{user}、winweb01-{user}、winweb02-{user}**）がまだ実行されていない場合は **Start（開始）** します。右側のツリービューで **Status（ステータス）** 列でソートすると、簡単に状態を確認できます。
 +
 image::2026_spring/module-07-workingvms/01_Imported_VMs_List.png[link=self, window=blank, width=100%]
 
-. Select to the *winweb01-{user}* VM and navigate to the *YAML* tab.
-. Find the *spec:* section and under the *template.metadata* add the following to the *labels* section:
+. **winweb01-{user}** VMを選択し、**YAML** タブに移動します。
+. **spec:** セクションを探し、その下の **template.metadata** 内にある **labels** セクションに以下を追加します。
 +
 [source,yaml,role=execute]
 ----
 env: webapp
 ----
 +
-IMPORTANT: Make sure to get the indentation exactly right - just like in the screenshot below.
-+
+
+[IMPORTANT]
+====
+インデント（字下げ）が以下のスクリーンショットと完全に一致していることを確認してください。
+====
+
 image::2026_spring/module-07-workingvms/02_Imported_VMs_YAML.png[link=self, window=blank, width=100%]
 
-. Click the *Save* button, and you will be prompted that the VM has been updated to a new version number.
-. *Repeat* the process for the VM *winweb02-{user}*.
-. After completing the configuration change, restart both *winweb01-{user}* and *winweb02-{user}*.
+. **Save（保存）** ボタンをクリックすると、VMが新しいバージョン番号に更新されたというプロンプトが表示されます。
+. VM **winweb02-{user}** に対しても同じプロセスを **繰り返し** 行います。
+. 構成の変更が完了したら、**winweb01-{user}** と **winweb02-{user}** の双方を再起動します。
 +
-NOTE: Ensure the VMs are properly working by accessing to the console tab of each VM.
+[NOTE]
+====
+各VMのコンソール（Console）タブにアクセスし、VMが正常に動作していることを確認してください。
+====
 
-=== Create the Service
+=== サービスの作成
 
-. In the left-side menu expand *Networking* and click on *Services*. On the screen that loads, click the *Create Service* button in the corner.
+. 左側メニューで **Networking（ネットワーク）** を展開し、**Services（サービス）** をクリックします。読み込まれた画面で、隅にある **Create Service（サービスの作成）** ボタンをクリックします。
 +
 image::2026_spring/module-07-workingvms/03_Navigate_Service.png[link=self, window=blank, width=100%]
 
-. Replace the YAML with the following definition
+. デフォルトのYAMLを以下の定義に置き換えます。
 +
 [source,yaml,role=execute,subs="attributes"]
 ----
@@ -75,46 +84,45 @@ spec:
 +
 image::2026_spring/module-07-workingvms/04_Service_YAML.png[link=self, window=blank, width=100%]
 
-. Click the *Create* button at the bottom. You will get a notification that the YAML has been saved.
-. From the details page for the newly created *webapp* Service, locate *Pod selector* link and click it.
+. 下部にある **Create（作成）** ボタンをクリックします。YAMLが保存されたという通知が表示されます。
+. 新しく作成された **webapp** サービスの詳細ページから、**Pod selector（ポッドセレクター）** のリンクを探してクリックします。
 +
 image::2026_spring/module-07-workingvms/05_Imported_VMs_PodSelector.png[link=self, window=blank, width=100%]
 
-. Verify the two Windows VMs are properly identified and targeted by the Service.
+. 2台のWindows VMが、サービスによって適切に識別され、ターゲットとして指定されていることを確認します。
 +
 image::2026_spring/module-07-workingvms/06_Imported_VMs_Pods.png[link=self, window=blank, width=100%]
 
-=== Create the Route
+=== ルートの作成
 
-Now the Windows IIS servers are accessible from within the OpenShift cluster. Other virtual machines are able to access them using the DNS name **webapp.vmexamples-{user}**, which is determined by the name of the service + the namespace. However, since these web servers are the front end to an application, we want it to be externally accessible. This will be done by exposing it publicly using a *Route*.
+これで、Windows IISサーバーにOpenShiftクラスター内部からアクセスできるようになりました。他の仮想マシンは、サービスの名称＋ネームスペースによって決定されるDNS名（**webapp.vmexamples-{user}**）を使用してこれらにアクセスできます。しかし、これらのWebサーバーはアプリケーションのフロントエンドであるため、外部からアクセスできるようにする必要があります。これは、**Route（ルート）** を使用してパブリックに公開することで実現します。
 
-. Under *Networking* now click on the *Routes* option in the left navigation menu.  Click the *Create Route* button in the center of the screen.
+. **Networking（ネットワーク）** の下にある、左側ナビゲーションメニューの **Routes（ルート）** オプションをクリックします。画面中央にある **Create Route（ルートの作成）** ボタンをクリックします。
 +
 image::2026_spring/module-07-workingvms/07_Route_Navigation.png[link=self, window=blank, width=100%]
 
-. Fill the form using the information below, scroll to the bottom and click the *Create* button when done.
+. 以下の情報を使用してフォームを入力し、完了したら一番下までスクロールして **Create（作成）** ボタンをクリックします。
 +
-.. *Name*: *route-webapp*
-.. *Service*: *webapp*
-.. *Target port*: *80 -> 80 (TCP)*
-.. *Secure Route*: *Enabled*
-.. *TLS termination*: *Edge*
-.. *Insecure traffic*: *Redirect*
+.. **Name（名前）**: `route-webapp`
+.. **Service（サービス）**: `webapp`
+.. **Target port（ターゲットポート）**: `80 -> 80 (TCP)`
+.. **Secure Route（セキュアルート）**: **有効（チェックを入れる）**
+.. **TLS termination（TLS終端）**: **Edge**
+.. **Insecure traffic（非セキュアトラフィック）**: **Redirect**
 +
 image::2026_spring/module-07-workingvms/08_Create_Route.png[link=self, window=blank, width=100%]
 
-. Navigate to the address shown in *Location* field
+. **Location（ロケーション）** フィールドに表示されているアドレスに移動（アクセス）します。
 +
 image::2026_spring/module-07-workingvms/09_Route_Access.png[link=self, window=blank, width=100%]
 
-. When the page loads, you will see an error, it's not working as expected so something must be wrong.
+. ページが読み込まれるとエラーが表示されます。期待通りに動作していないため、何かが間違っているはずです。
 +
 image::2026_spring/module-07-workingvms/10_WebApp_Error.png[link=self, window=blank, width=100%]
 
+. この接続性の問題に対処するため、Webサーバーからアクセスできるように、**database-{user}** VM用のサービスも作成する必要があります。
 
-. To address our connectivity issue, we will need to create a service for the *database-{user}* VM as well so that it can be accessed by the web servers.
-
-. Once again, navigate to *Networking* -> *Services* and press the *Create Service* button. Replace the YAML with the following definition:
+. 再び **Networking（ネットワーク）** -> **Services（サービス）** に移動し、**Create Service** ボタンを押します。YAMLを以下の定義に置き換えます。
 +
 [source,yaml,role=execute,subs="attributes"]
 ----
@@ -132,52 +140,53 @@ spec:
     targetPort: 3306
 ----
 +
+
 image::2026_spring/module-07-workingvms/11_Database_YAML.png[link=self, window=blank, width=100%]
 
-
-. When the YAML is pasted, click the *Create* button.
-. Reload the WebApp URL in your browser and expect to get the proper result of a working migrated web application.
+. YAMLを貼り付けたら、**Create（作成）** ボタンをクリックします。
+. ブラウザでWebアプリケーションのURLをリロード（再読み込み）します。移行されたWebアプリケーションが正常に動作し、適切な結果が表示されることを確認してください。
 +
 image::2026_spring/module-07-workingvms/12_WebApp_Success.png[link=self, window=blank, width=100%]
 
-. Refresh the screen a couple of times, you should see which webserver is responding, and that the count of user accesses rises with each refresh.
-. Return to your OpenShift console, and click on *Virtualization -> VirtualMachines* and shut down the web server that is handling your requests.
+. 画面を数回リフレッシュ（更新）してみます。どのWebサーバーが応答しているかが表示され、リフレッシュするたびにユーザーのアクセス回数（Count）が増加することを確認してください。
+. OpenShiftコンソールに戻り、**Virtualization（仮想化） -> VirtualMachines（仮想マシン）** をクリックして、リクエストを処理しているWebサーバーをシャットダウン（停止）します。
 +
 image::2026_spring/module-07-workingvms/13_WinWeb01_Shutdown.png[link=self, window=blank, width=100%]
 
-. Return to your tab with the open WebApp URL and refresh the screen. You should see the remaining web server start returning requests, and the count continue to rise with each refresh. Configuring the service to load balance between two virtual web servers is shown to be successful.
+. WebアプリケーションのURLを開いているタブに戻り、画面をリフレッシュします。残りのWebサーバーがリクエストを返し始め、リフレッシュするたびにカウントが増え続けることを確認してください。2台の仮想Webサーバー間で負荷分散を行うようにサービスが正常に構成されていることが実証されました。
 +
 image::2026_spring/module-07-workingvms/14_WinWeb02_Online.png[link=self, window=blank, width=100%]
 +
-NOTE: While this is a simple example, keep in mind that there are a number of ways to configure load balancing services between virtual machines in OpenShift to meet the needs of your application. 
-
+[NOTE]
+====
+これはシンプルな例ですが、OpenShift内の仮想マシン間で負荷分散サービスを構成し、アプリケーションのニーズを満たすための方法は他にもたくさんあることを覚えておいてください。
+====
 
 [[service_route_staged]]
-== Exposing an Application with a Service/Route - Staged VMs
+== サービス／ルートによるアプリケーションの公開 - ステージング済みのVMの場合
 
-As we mentioned earlier, by default, virtual machines are connected to the SDN, which is a convenient and easy way to give them access to the rest of the network. However, it can be challenging for the virtual machines, and other pods in the OpenShift cluster, to find and connect to the virtualized applications. To solve this, we will use a *Service* to balance connections across the two Windows-based web servers, and create a DNS entry for each service discovery, then create a *Route* to allow external clients to access the application hosted within the virtual machines.
+前述の通り、デフォルトでは仮想マシンはSDN（ポッドネットワーク）に接続されており、これはネットワークの残りの部分へのアクセスを付与するための便利で簡単な方法です。しかし、仮想マシンやOpenShiftクラスター内の他のポッドにとって、仮想化されたアプリケーションを検出して接続することは困難な場合があります。これを解決するために、**Service（サービス）** を使用して2台のWindowsベースのWebサーバー間で接続の負荷分散（ロードバランス）を行い、サービス検出用のDNSエントリを作成した上で、外部のクライアントが仮想マシン内でホストされているアプリケーションにアクセスできるようにするための **Route（ルート）** を作成します。
 
-=== Introduction to Services
+=== サービス（Service）の導入
 
-The *Service* identifies the source/target for traffic, and directs clients to the endpoints based on labels. Currently, the VMs do not have a label assigned yet.
+**Service** はトラフィックの送信元／送信先を識別し、ラベル（Label）に基づいてクライアントをエンドポイント（ポッド／VM）に誘導します。現時点では、これらのVMにはまだラベルが割り当てられていません。
 
-In order to successfully associate the  VMs with the Service, we need to do the following:
+VMをサービスに正常に関連付けるには、以下の作業を行う必要があります。
 
-* Add a label to the VMs. We will use the same label for both Windows IIS servers because they are both behind the same load balancer.
-* Create the service to make the two Windows IIS servers available for other workloads on the cluster. OpenShift will automatically make the load balancer internally accessible using the name of the Service as the DNS name.
-* Make the service available outside of OpenShift by creating a *Route*.
+* VMにラベルを追加する。2台のWindows IISサーバーは状況として同じロードバランサーの背後に配置されるため、双方に同じラベルを使用します。
+* 2台のWindows IISサーバーをクラスター上の他のワークロードから利用できるようにするためのサービスを作成する。OpenShiftは、サービスの名称をDNS名として使用し、ロードバランサーに内部アクセスできるように自動構成します。
+* **Route** を作成して、OpenShiftの外部からサービスを利用できるようにする。
 
-To begin, we'll add labels to the virtual machines by modifying their definition in the OpenShift Virtualization GUI.
+まずは、OpenShift VirtualizationのGUIで仮想マシンの定義を変更し、ラベルを追加することから始めましょう。
 
+=== 仮想マシンへのラベル付与
 
-=== Label the Virtual Machines
-
-. Click on *Virtualization -> VirtualMachines* in the left-side menu, click on the *vmimported-{user}* project and *Start* your three imported virtual machines: *database, winweb01, and winweb02*. You can verify this easily by sorting by the *Status* column in the right-side tree view.
+. 左側メニューの **Virtualization（仮想化） -> VirtualMachines（仮想マシン）** をクリックし、**vmimported-{user}** プロジェクトをクリックして、インポート済みの3台の仮想マシン（**database、winweb01、winweb02**）がまだ実行されていない場合は **Start（起動）** します。右側のツリービューで **Status（ステータス）** 列でソートすると、簡単に状態を確認できます。
 +
 image::2026_spring/module-07-workingvms/15_Staged_VMs_List.png[link=self, window=blank, width=100%]
 
-. Select to the *winweb01* VM and navigate to the *YAML* tab.
-. Find the *spec:* section and under the *template.metadata* section, and use the following syntax to add labels to the VM:
+. **winweb01** VMを選択し、**YAML** タブに移動します。
+. **spec:** セクションを探し、その下の **template.metadata** セクション内で、以下の構文を使用してVMにラベルを追加します。
 +
 [source,yaml,role=execute]
 ----
@@ -186,12 +195,16 @@ labels:
   env: webapp
 ----
 +
-IMPORTANT: Make sure to get the indentation exactly right - just like in the screenshot below.
-+
+
+[IMPORTANT]
+====
+インデント（字下げ）が以下のスクリーンショットと完全に一致していることを確認してください。
+====
+
 image::2026_spring/module-07-workingvms/16_Staged_VMs_YAML.png[link=self, window=blank, width=100%]
 
-. Click the *Save* button, and you will be prompted that the VM has been updated to a new version number.
-. *Repeat* the process for the VM *winweb02* using the following syntax:
+. **Save（保存）** ボタンをクリックすると、VMが新しいバージョン番号に更新されたというプロンプトが表示されます。
+. VM **winweb02** に対しても、以下の構文を使用して同じプロセスを **繰り返し** 行います。
 +
 [source,yaml,role=execute]
 ----
@@ -200,17 +213,20 @@ labels:
   env: webapp
 ----
 +
-. After completing the configuration change, reboot both *winweb01* and *winweb02*.
+. 構成の変更が完了したら、**winweb01** と **winweb02** の双方を再起動します。
 +
-NOTE: Ensure the VMs are properly working by accessing to the console tab of each VM.
+[NOTE]
+====
+各VMのコンソール（Console）タブにアクセスし、VMが正常に動作していることを確認してください。
+====
 
-=== Create the Service
+=== サービスの作成
 
-. In the left-side menu expand *Networking* and click on *Services*. On the screen that loads, click the *Create Service* button in the center of the page.
+. 左側メニューで **Networking（ネットワーク）** を展開し、**Services（サービス）** をクリックします。読み込まれた画面で、ページ中央にある **Create Service（サービスの作成）** ボタンをクリックします。
 +
 image::2026_spring/module-07-workingvms/17_Navigate_Service.png[link=self, window=blank, width=100%]
 
-. Replace the YAML with the following definition
+. デフォルトのYAMLを以下の定義に置き換えます。
 +
 [source,yaml,role=execute,subs="attributes"]
 ----
@@ -228,47 +244,48 @@ spec:
     targetPort: 80
 ----
 +
+
 image::2026_spring/module-07-workingvms/18_Service_YAML.png[link=self, window=blank, width=100%]
 
-. Click the *Create* button at the bottom. You will get a notification that the YAML has been saved.
-. From the details page for the newly created *webapp* Service, locate *Pod selector* link and click it.
+. 下部にある **Create（作成）** ボタンをクリックします。YAMLが保存されたという通知が表示されます。
+. 新しく作成された **webapp** サービスの詳細ページから、**Pod selector（ポッドセレクター）** のリンクを探してクリックします。
 +
 image::2026_spring/module-07-workingvms/19_Imported_VMs_PodSelector.png[link=self, window=blank, width=100%]
 
-. Verify the two Windows VMs are properly identified and targeted by the Service.
+. 2台のWindows VMが、サービスによって適切に識別され、ターゲットとして指定されていることを確認します。
 +
 image::2026_spring/module-07-workingvms/20_Imported_VMs_Pods.png[link=self, window=blank, width=100%]
 
-=== Create the Route
+=== ルートの作成
 
-Now the Windows IIS servers are accessible from within the OpenShift cluster. Other virtual machines are able to access them using the DNS name **webapp.vmimported-{user}**, which is determined by the name of the service + the namespace. However, since these web servers are the front end to an application, we want it to be externally accessible. This will be done by exposing it publicly using a *Route*.
+これで、Windows IISサーバーにOpenShiftクラスター内部からアクセスできるようになりました。他の仮想マシンは、サービスの名称＋ネームスペースによって決定されるDNS名（**webapp.vmimported-{user}**）を使用してこれらにアクセスできます。しかし、これらのWebサーバーはアプリケーションのフロントエンドであるため、外部からアクセスできるようにする必要があります。これは、**Route（ルート）** を使用してパブリックに公開することで実現します。
 
-. Under *Networking* now click on the *Routes* option in the left navigation menu.  Click the *Create Route* button in the center of the screen.
+. **Networking（ネットワーク）** の下にある、左側ナビゲーションメニューの **Routes（ルート）** オプションをクリックします。画面中央にある **Create Route（ルートの作成）** ボタンをクリックします。
 +
 image::2026_spring/module-07-workingvms/21_Route_Navigation.png[link=self, window=blank, width=100%]
 
-. Fill the form using the information below, scroll to the bottom and click the *Create* button when done.
+. 以下の情報を使用してフォームを入力し、完了したら一番下までスクロールして **Create（作成）** ボタンをクリックします。
 +
-.. *Name*: *route-webapp*
-.. *Service*: *webapp*
-.. *Target port*: *80 -> 80 (TCP)*
-.. *Secure Route*: *Enabled*
-.. *TLS termination*: *Edge*
-.. *Insecure traffic*: *Redirect*
+.. **Name（名前）**: `route-webapp`
+.. **Service（サービス）**: `webapp`
+.. **Target port（ターゲットポート）**: `80 -> 80 (TCP)`
+.. **Secure Route（セキュアルート）**: **有効（チェックを入れる）**
+.. **TLS termination（TLS終端）**: **Edge**
+.. **Insecure traffic（非セキュアトラフィック）**: **Redirect**
 +
 image::2026_spring/module-07-workingvms/22_Create_Route.png[link=self, window=blank, width=100%]
 
-. Navigate to the address shown in *Location* field
+. **Location（ロケーション）** フィールドに表示されているアドレスに移動（アクセス）します。
 +
 image::2026_spring/module-07-workingvms/23_Route_Access.png[link=self, window=blank, width=100%]
 
-. When the page loads, you will see an error, it's not working as expected so something must be wrong.
+. ページが読み込まれるとエラーが表示されます。期待通りに動作していないため、何かが間違っているはずです。
 +
 image::2026_spring/module-07-workingvms/24_WebApp_Error.png[link=self, window=blank, width=100%]
 
-. To address our connectivity issue, we will need to create a service for the *database* VM as well so that it can be accessed by the web servers.
+. この接続性の問題に対対処するため、Webサーバーからアクセスできるように、**database** VM用のサービスも作成する必要があります。
 
-. Once again, navigate to *Networking* -> *Services* and press the *Create Service* button. Replace the YAML with the following definition:
+. 再び **Networking（ネットワーク）** -> **Services（サービス）** に移動し、**Create Service** ボタンを押します。YAMLを以下の定義に置き換えます。
 +
 [source,yaml,role=execute,subs="attributes"]
 ----
@@ -286,26 +303,28 @@ spec:
     targetPort: 3306
 ----
 +
+
 image::2026_spring/module-07-workingvms/25_Database_YAML.png[link=self, window=blank, width=100%]
 
-
-. When the YAML is pasted, click the *Create* button.
-. Reload the WebApp URL in your browser and expect to get the proper result of a working migrated web application.
+. YAMLを貼り付けたら、**Create（作成）** ボタンをクリックします。
+. ブラウザでWebアプリケーションのURLをリロード（再読み込み）します。移行されたWebアプリケーションが正常に動作し、適切な結果が表示されることを確認してください。
 +
 image::2026_spring/module-07-workingvms/26_WebApp_Success.png[link=self, window=blank, width=100%]
 
-. Refresh the screen a couple of times, you should see which webserver is responding, and that the count of user accesses rises with each refresh.
-. Return to your OpenShift console, and click on *Virtualization -> VirtualMachines* and shut down the web server that is handling your requests.
+. 画面を数回リフレッシュ（更新）してみます。どのWebサーバーが応答しているかが表示され、リフレッシュするたびにユーザーのアクセス回数（Count）が増加することを確認してください。
+. OpenShiftコンソールに戻り、**Virtualization（仮想化） -> VirtualMachines（仮想マシン）** をクリックして、リクエストを処理しているWebサーバーをシャットダウン（停止）します。
 +
 image::2026_spring/module-07-workingvms/27_WinWeb02_Shutdown.png[link=self, window=blank, width=100%]
 
-. Return to your tab with the open WebApp URL and refresh the screen. You should see the remaining web server start returning requests, and the count continue to rise with each refresh. Configuring the service to load balance between two virtual web servers is shown to be successful.
+. WebアプリケーションのURLを開いているタブに戻り、画面をリフレッシュします。残りのWebサーバーがリクエストを返し始め、リフレッシュするたびにカウントが増え続けることを確認してください。2台の仮想Webサーバー間で負荷分散を行うようにサービスが正常に構成されていることが実証されました。
 +
 image::2026_spring/module-07-workingvms/28_WinWeb01_Online.png[link=self, window=blank, width=100%]
 +
-NOTE: While this is a simple example, keep in mind that there are a number of ways to configure load balancing services between virtual machines in OpenShift to meet the needs of your application. 
+[NOTE]
+====
+これはシンプルな例ですが、OpenShift内の仮想マシン間で負荷分散サービスを構成し、アプリケーションのニーズを満たすための方法は他にもたくさんあることを覚えておいてください。
+====
 
+== まとめ
 
-== Summary
-
-In this module you were able to experience working with virtual machines that are running in OpenShift Virtualization -- either those that you migrated into the OpenShift Virtualization environment from VMware vSphere, or those that already existed in your cluster -- by making them accessible outside of the cluster in a more modernized approach using the native services and routes features in Red Hat OpenShift. This essentially allows you to treat your imported virtual machines and the applications they host like containerized applications, the first step of your modernization journey converting your legacy virtual machine hosted applications to containerized applications.
+このモジュールでは、Red Hat OpenShiftのネイティブ機能であるService（サービス）やRoute（ルート）を使用して、OpenShift Virtualizationで実行されている仮想マシン（VMware vSphereから環境に移行したもの、またはクラスターにあらかじめ存在していたもの）をクラスター外部からアクセス可能にする、モダナイズされたアプローチを体験しました。これにより、インポートした仮想マシンやそこでホストされているアプリケーションを、実質的にコンテナ化されたアプリケーションと同様に扱うことができるようになります。これは、レガシーな仮想マシンでホストされていたアプリケーションをコンテナ化されたアプリケーションへと変換していく、モダナイゼーションへの道のりの第一歩となります。
