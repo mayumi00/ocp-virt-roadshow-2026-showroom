@@ -64,7 +64,7 @@ image::2026_spring/module-05-tempinst/06_Edit_CPU_Mem.png[link=self, window=blan
 +
 image::2026_spring/module-05-tempinst/09_Scripts_CloudInit.png[link=self, window=blank, width=100%]
 
-## . **Cloud-init** ダイアログが開いたら、**Configure via: Script（スクリプト経由で構成）** のラジオボタンをクリックし、デフォルトの YAML を以下の YAML スニペットで **置き換え（置換）** ます。
+. **Cloud-init** ダイアログが開いたら、**Configure via: Script（スクリプト経由で構成）** のラジオボタンをクリックし、デフォルトの YAML を以下の YAML スニペットで **置き換え（置換）** ます。
 +
 [source,yaml,role=execute]
 ----
@@ -79,7 +79,7 @@ userData: |-
     - systemctl enable mariadb
     - systemctl start mariadb
 ----
-
++
 image::2026_spring/module-05-tempinst/10_Cloud_Init_Script.png[link=self, window=blank, width=100%]
 
 . **Save（保存）** ボタンをクリックすると、緑色で **Saved（保存されました）
@@ -108,6 +108,7 @@ image::2026_spring/module-05-tempinst/14_VM_Console.png[link=self, window=blank,
 sudo mysql -u root
 ----
 
++
 image::2026_spring/module-05-tempinst/15_MariaDB_Login.png[link=self, window=blank, width=100%]
 
 . **Ctrl-D** を2回押して、VMからログアウトします。
@@ -136,6 +137,7 @@ image::2026_spring/module-05-tempinst/16_Windows_2k22_Tile.png[link=self, window
 提供されているブートソースがないため、初期状態ではこのVMをクイック作成するオプションが表示されないことに注意してください。ニーズに合わせてVMをカスタマイズする必要があります。
 ====
 
++
 image::2026_spring/module-05-tempinst/17_Windows_2k22_Dialog.png[link=self, window=blank, width=100%]
 +
 . このダイアログ内で：
@@ -541,15 +543,15 @@ image::2026_spring/module-05-tempinst/36_Select_InstanceType.png[link=self, wind
 +
 
 * Red Hat が提供するインスタンスタイプは、以下の用途を想定しています：
- **N シリーズ**: VNF（仮想ネットワーク機能）などのネットワーク集約型の DPDK ワークロード向けに設計されています。
- **O シリーズ**: メモリのオーバーコミットがあらかじめ構成された、特化型の汎用インスタンスタイプです。
- **M シリーズ**: メモリ集約型のワークロード向けに設計されています。
- **RT シリーズ**: リアルタイム仮想化のユースケース向けに設計されています。
- **D シリーズ**: 専用またはピン留めされた CPU ワークロードで使用するために設計されています。
- **CX シリーズ**: 追加の機能オフロード用に追加の専用 CPU を要求することで、コンピューティング集約型のワークロード向けに設計されています。
- **U シリーズ**: 最も一般的な汎用（ユニバーサル）のインスタンスタイプです。
+ ** *N シリーズ*: VNF（仮想ネットワーク機能）などのネットワーク集約型の DPDK ワークロード向けに設計されています。
+ ** *O シリーズ*: メモリのオーバーコミットがあらかじめ構成された、特化型の汎用インスタンスタイプです。
+ ** *M シリーズ*: メモリ集約型のワークロード向けに設計されています。
+ ** *RT シリーズ*: リアルタイム仮想化のユースケース向けに設計されています。
+ ** *D シリーズ*: 専用またはピン留めされた CPU ワークロードで使用するために設計されています。
+ ** *CX シリーズ*: 追加の機能オフロード用に追加の専用 CPU を要求することで、コンピューティング集約型のワークロード向けに設計されています。
+ ** *U シリーズ*: 最も一般的な汎用（ユニバーサル）のインスタンスタイプです。
 
-. **U シリーズ** のタイルをクリックすると、一般的なインスタンスタイプ用に定義されたリソースのドロップダウンリストが表示されます。ここでのデフォルトオプションは **medium: 1 CPUs, 4 GiB Memory** です。これを選択します。選択されると、インスタンスタイプのフォントが太字になり、青い線で示されます。
+. *Uシリーズ* のタイルをクリックすると、一般的なインスタンスタイプ用に定義されたリソースのドロップダウンリストが表示されます。ここでのデフォルトオプションは **medium: 1 CPUs, 4 GiB Memory** です。これを選択します。選択されると、インスタンスタイプのフォントが太字になり、青い線で示されます。
 +
 image::2026_spring/module-05-tempinst/37_InstanceType_Resources.png[link=self, window=blank, width=100%]
 
