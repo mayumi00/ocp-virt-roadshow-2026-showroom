@@ -11,7 +11,7 @@ CSIドライバーがサポートされているソフトウェア定義スト�
 
 [NOTE]
 ====
-# このリストはすべてを網羅しているわけではありません。サポートされているすべてのストレージソリューションに関する情報については、 https://catalog.redhat.com/platform/red-hat-openshift/virtualization#virtualization-infrastructure[Red Hat EcoSystem Catalog^] を参照してください。
+このリストはすべてを網羅しているわけではありません。サポートされているすべてのストレージソリューションに関する情報については、 https://catalog.redhat.com/platform/red-hat-openshift/virtualization#virtualization-infrastructure[Red Hat EcoSystem Catalog^] を参照してください。
 ====
 
 このワークショップのセクションでは、KubernetesのCSIパラダイムを使用する際に、プロバイダーにストレージを要求してVMディスクを格納するために使用される永続ボリューム要求（PVC：Persistent Volume Claim）について探索します。多くのストレージプロバイダーは、自社のドライバーでボリュームスナップショットやクローンなどの高度なストレージ機能もサポートしています。お好みのストレージベンダーに問い合わせて、CSIドライバーとストレージデバイスがサポートしている機能を確認してください。
