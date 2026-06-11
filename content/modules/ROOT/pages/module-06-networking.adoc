@@ -100,7 +100,7 @@ image::2026_spring/module-06-networking/10_VM_Network_Attach.png[link=self, wind
 これは外部ネットワークに直接接続するブリッジであるため、このネットワークを使用する仮想マシンのアクセスを有効にするために、マスカレード（NAT）などのOpenShiftの機能やケーパビリティに依存する必要はありません。その結果、ここでの **Type（タイプ）** は **Bridge** に設定する必要があります。
 ====
 
-. **Actions(アクション) -> Control(コントロール)** メニューまたは **Start(開始)** ショートカットボタンを使用してVMを起動し、**Console（コンソール）** タブに切り替えて起動の様子を見守ります。
+. **Actions（アクション） -> Control（コントロール）** メニューまたは **Start（開始）** ショートカットボタンを使用してVMを起動し、**Console（コンソール）** タブに切り替えて起動の様子を見守ります。
 +
 image::2026_spring/module-06-networking/11_VM_Network_Startup.png[link=self, window=blank, width=100%]
 +
@@ -174,11 +174,11 @@ image::2026_spring/module-06-networking/18_UDN_NAD.png[link=self, window=blank, 
 
 . プライマリユーザー定義ネットワークにアタッチされた仮想マシンの作成は、プライマリUDNが定義されているプロジェクト内でテンプレートやインスタンスタイプからマシンを作成するのと同様にシンプルです。UDNは、UDNサポートが有効になっていない他のプロジェクトで見られるようなデフォルトの（ポッド）ネットワークを置き換えます。これをテストするために、今すぐ作成してみましょう。
 
-. 左側のナビゲーションメニューで **Virtualization -> VirtualMachines** をクリックし、**vmexamples-{user}-udn** プロジェクトを選択して、**Create VirtualMachine(VirtualMachineの作成)** ボタンをクリックし、ドロップダウンメニューから **From InstanceType（InstanceTypeから）** を選択します。
+. 左側のナビゲーションメニューで **Virtualization -> VirtualMachines** をクリックし、**vmexamples-{user}-udn** プロジェクトを選択して、**Create VirtualMachine（VirtualMachineの作成）** ボタンをクリックし、ドロップダウンメニューから **From InstanceType（InstanceTypeから）** を選択します。
 +
 image::2026_spring/module-06-networking/19_Create_UDN_VM.png[link=self, window=blank, width=100%]
 
-. **fedora** のインスタンスタイプを選択し、他のすべてのオプションはデフォルトのままにして、一番下までスクロールして **Create VirtualMachine(VirtualMachineの作成)** ボタンをクリックします。
+. **fedora** のインスタンスタイプを選択し、他のすべてのオプションはデフォルトのままにして、一番下までスクロールして **Create VirtualMachine（VirtualMachineの作成）** ボタンをクリックします。
 +
 image::2026_spring/module-06-networking/20a_Fedora_InstanceType.png[link=self, window=blank, width=100%]
 +
