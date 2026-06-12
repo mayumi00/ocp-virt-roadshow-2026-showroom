@@ -60,7 +60,7 @@ image::2026_spring/module-07-workingvms/02_Imported_VMs_YAML.png[link=self, wind
 
 === サービスの作成
 
-. 左側メニューで **Networking（ネットワーク）** を展開し、**Services（サービス）** をクリックします。読み込まれた画面で、隅にある **Create Service（サービスの作成）** ボタンをクリックします。
+. 左側メニューで **Networking（ネットワーク）** を展開し、**Services（サービス）** をクリックします。読み込まれた画面で、隅にある **Create Service（Serviceの作成）** ボタンをクリックします。
 +
 image::2026_spring/module-07-workingvms/03_Navigate_Service.png[link=self, window=blank, width=100%]
 
@@ -97,7 +97,7 @@ image::2026_spring/module-07-workingvms/06_Imported_VMs_Pods.png[link=self, wind
 
 これで、Windows IISサーバーにOpenShiftクラスター内部からアクセスできるようになりました。他の仮想マシンは、サービスの名称＋ネームスペースによって決定されるDNS名（**webapp.vmexamples-{user}**）を使用してこれらにアクセスできます。しかし、これらのWebサーバーはアプリケーションのフロントエンドであるため、外部からアクセスできるようにする必要があります。これは、**Route（ルート）** を使用してパブリックに公開することで実現します。
 
-. **Networking（ネットワーク）** の下にある、左側ナビゲーションメニューの **Routes（ルート）** オプションをクリックします。画面中央にある **Create Route（ルートの作成）** ボタンをクリックします。
+. **Networking（ネットワーク）** の下にある、左側ナビゲーションメニューの **Routes（ルート）** オプションをクリックします。画面中央にある **Create Route（Routeの作成）** ボタンをクリックします。
 +
 image::2026_spring/module-07-workingvms/07_Route_Navigation.png[link=self, window=blank, width=100%]
 
@@ -108,11 +108,11 @@ image::2026_spring/module-07-workingvms/07_Route_Navigation.png[link=self, windo
 .. **Target port（ターゲットポート）**: `80 -> 80 (TCP)`
 .. **Secure Route（セキュアルート）**: **有効（チェックを入れる）**
 .. **TLS termination（TLS終端）**: **Edge**
-.. **Insecure traffic（非セキュアトラフィック）**: **Redirect**
+.. **Insecure traffic（非セキュアトラフィック）**: **Redirect(リダイレクト)**
 +
 image::2026_spring/module-07-workingvms/08_Create_Route.png[link=self, window=blank, width=100%]
 
-. **Location（ロケーション）** フィールドに表示されているアドレスに移動（アクセス）します。
+. **Location（場所）** フィールドに表示されているアドレスに移動（アクセス）します。
 +
 image::2026_spring/module-07-workingvms/09_Route_Access.png[link=self, window=blank, width=100%]
 
@@ -122,7 +122,7 @@ image::2026_spring/module-07-workingvms/10_WebApp_Error.png[link=self, window=bl
 
 . この接続性の問題に対処するため、Webサーバーからアクセスできるように、**database-{user}** VM用のサービスも作成する必要があります。
 
-. 再び **Networking（ネットワーク）** -> **Services（サービス）** に移動し、**Create Service** ボタンを押します。YAMLを以下の定義に置き換えます。
+. 再び **Networking（ネットワーク）** -> **Services（サービス）** に移動し、**Create Service（Serviceの作成）** ボタンを押します。YAMLを以下の定義に置き換えます。
 +
 [source,yaml,role=execute,subs="attributes"]
 ----
@@ -181,7 +181,7 @@ VMをサービスに正常に関連付けるには、以下の作業を行う必
 
 === 仮想マシンへのラベル付与
 
-. 左側メニューの **Virtualization（仮想化） -> VirtualMachines（仮想マシン）** をクリックし、**vmimported-{user}** プロジェクトをクリックして、インポート済みの3台の仮想マシン（**database、winweb01、winweb02**）がまだ実行されていない場合は **Start（起動）** します。右側のツリービューで **Status（ステータス）** 列でソートすると、簡単に状態を確認できます。
+. 左側メニューの **Virtualization（仮想化） -> VirtualMachines（仮想マシン）** をクリックし、**vmimported-{user}** プロジェクトをクリックして、インポート済みの3台の仮想マシン（**database、winweb01、winweb02**）がまだ実行されていない場合は **Start（開始）** します。右側のツリービューで **Status（ステータス）** 列でソートすると、簡単に状態を確認できます。
 +
 image::2026_spring/module-07-workingvms/15_Staged_VMs_List.png[link=self, window=blank, width=100%]
 
@@ -222,7 +222,7 @@ labels:
 
 === サービスの作成
 
-. 左側メニューで **Networking（ネットワーク）** を展開し、**Services（サービス）** をクリックします。読み込まれた画面で、ページ中央にある **Create Service（サービスの作成）** ボタンをクリックします。
+. 左側メニューで **Networking（ネットワーク）** を展開し、**Services（サービス）** をクリックします。読み込まれた画面で、ページ中央にある **Create Service（Serviceの作成）** ボタンをクリックします。
 +
 image::2026_spring/module-07-workingvms/17_Navigate_Service.png[link=self, window=blank, width=100%]
 
@@ -260,7 +260,7 @@ image::2026_spring/module-07-workingvms/20_Imported_VMs_Pods.png[link=self, wind
 
 これで、Windows IISサーバーにOpenShiftクラスター内部からアクセスできるようになりました。他の仮想マシンは、サービスの名称＋ネームスペースによって決定されるDNS名（**webapp.vmimported-{user}**）を使用してこれらにアクセスできます。しかし、これらのWebサーバーはアプリケーションのフロントエンドであるため、外部からアクセスできるようにする必要があります。これは、**Route（ルート）** を使用してパブリックに公開することで実現します。
 
-. **Networking（ネットワーク）** の下にある、左側ナビゲーションメニューの **Routes（ルート）** オプションをクリックします。画面中央にある **Create Route（ルートの作成）** ボタンをクリックします。
+. **Networking（ネットワーク）** の下にある、左側ナビゲーションメニューの **Routes（ルート）** オプションをクリックします。画面中央にある **Create Route（Routeの作成）** ボタンをクリックします。
 +
 image::2026_spring/module-07-workingvms/21_Route_Navigation.png[link=self, window=blank, width=100%]
 
@@ -271,11 +271,11 @@ image::2026_spring/module-07-workingvms/21_Route_Navigation.png[link=self, windo
 .. **Target port（ターゲットポート）**: `80 -> 80 (TCP)`
 .. **Secure Route（セキュアルート）**: **有効（チェックを入れる）**
 .. **TLS termination（TLS終端）**: **Edge**
-.. **Insecure traffic（非セキュアトラフィック）**: **Redirect**
+.. **Insecure traffic（非セキュアトラフィック）**: **Redirect（リダイレクト）**
 +
 image::2026_spring/module-07-workingvms/22_Create_Route.png[link=self, window=blank, width=100%]
 
-. **Location（ロケーション）** フィールドに表示されているアドレスに移動（アクセス）します。
+. **Location（場所）** フィールドに表示されているアドレスに移動（アクセス）します。
 +
 image::2026_spring/module-07-workingvms/23_Route_Access.png[link=self, window=blank, width=100%]
 
@@ -285,7 +285,7 @@ image::2026_spring/module-07-workingvms/24_WebApp_Error.png[link=self, window=bl
 
 . この接続性の問題に対対処するため、Webサーバーからアクセスできるように、**database** VM用のサービスも作成する必要があります。
 
-. 再び **Networking（ネットワーク）** -> **Services（サービス）** に移動し、**Create Service** ボタンを押します。YAMLを以下の定義に置き換えます。
+. 再び **Networking（ネットワーク）** -> **Services（サービス）** に移動し、**Create Service（Serviceの作成）** ボタンを押します。YAMLを以下の定義に置き換えます。
 +
 [source,yaml,role=execute,subs="attributes"]
 ----
