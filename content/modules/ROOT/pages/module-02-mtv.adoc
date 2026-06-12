@@ -65,7 +65,7 @@ HAproxy（ロードバランサー）のVMを移行する必要はありませ�
 
 === VMware環境の確認
 
-データストアやポートグループなどのリソースを、vSphereからOpenShiftの対応する要素（ストレージクラスやネットワークアタッチメント定義）にマッピングするプロセスを理解するために、まずは移行元の環境を確認することから始めましょう。
+データストアやポートグループなどのリソースを、vSphereからOpenShiftの対応する要素（ストレージクラスやネットワーク接続定義）にマッピングするプロセスを理解するために、まずは移行元の環境を確認することから始めましょう。
 
 . VMware vCenterに移動します： https://{vcenter_console}[vCenter Console^]
 . *Launch vSphere Client* をクリックします。
@@ -87,7 +87,7 @@ image::2026_spring/module-02-mtv/01_Workload_VM_List.png[link=self, window=blank
 お使いのラボ環境における正確なフォルダリストは、ここの画像と異なる場合がありますが、Roadshowフォルダと対象のVMが見つかれば、ラボを続行して構いません。
 ====
 
-. 画面上部にある *VMs* タブをクリックして、フォルダ内の各仮想マシンの詳細を確認します。
+. 画面上部にある *VMs（仮想マシン）* タブをクリックして、フォルダ内の各仮想マシンの詳細を確認します。
 +
 image::2026_spring/module-02-mtv/02_VM_Details.png[link=self, window=blank, width=100%]
 
@@ -95,7 +95,7 @@ image::2026_spring/module-02-mtv/02_VM_Details.png[link=self, window=blank, widt
 +
 image::2026_spring/module-02-mtv/03_vSphere_Network.png[link=self, window=blank, width=100%]
 
-. 最後に、*Datastores（データストア）* ビューに移動して、使用中のデータストアを確認します。ツリーを展開して *RS0x* データセンターにアタッチされているデータストアを確認し、必要に応じて *VMs* サブタブに移動して、各仮想マシンが使用している容量を確認します。
+. 最後に、*Datastores（データストア）* ビューに移動して、使用中のデータストアを確認します。ツリーを展開して *RS0x* データセンターにアタッチされているデータストアを確認し、必要に応じて *VMs（仮想マシン）* サブタブに移動して、各仮想マシンが使用している容量を確認します。
 +
 image::2026_spring/module-02-mtv/04_vSphere_Datastore.png[link=self, window=blank, width=100%]
 
@@ -152,7 +152,7 @@ image::2026_spring/module-02-mtv/10c_Mig_Plan_Cold.png[link=self, window=blank, 
 
 . これで *Review and create（確認と作成）* ページが表示され、移行ウィザード中に選択したすべてのオプションを確認できます。すべてが正しく表示されているか確認し、準備ができたら下部にある *Create plan（プランの作成）* ボタンをクリックします。
 +
-image::2026_spring/module-02-mtv/11a_Create_Migration_Plan_Top.png=self, window=blank, width=100%]
+image::2026_spring/module-02-mtv/11a_Create_Migration_Plan_Top.png[link=self, window=blank, width=100%]
 image::2026_spring/module-02-mtv/11b_Create_Migration_Plan_Bottom.png[link=self, window=blank, width=100%]
 
 . 新しい画面に移動し、移行プランが現在検証中であり、*Unknown（不明）* 状態であることが確認できます。
