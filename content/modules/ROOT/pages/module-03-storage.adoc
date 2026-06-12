@@ -117,13 +117,13 @@ image::2026_spring/module-03-storage/10_Bootloader_Broken.png[link=self, window=
 前のステップでは、ゲストOS内からシャットダウンが実行されました。しかし、OpenShift Virtualizationは、VMをホストしているポッドがまだ実行されているため、ポリシーに基づいてデフォルトで自動的に再起動します。この挙動は、グローバルまたはVMごとに変更可能です。
 ====
 
-. 右上隅にある **Actions（アクション） -> Control（コントロール）** ドロップダウンメニューまたはショートカットボタンを使用して、VMを **Stop（停止）** します。マシンが不安定な状態にあり、正常なシャットダウンを試みようとするため、このプロセスには長い時間がかかる場合があります。もう一度 **Actions -> Control** ドロップダウンメニューをクリックすると、**Force stop（強制停止）** のオプションが表示されます。ラボを続行するために、このオプションを使用してください。
+. 右上隅にある **Actions（アクション） -> Control（コントロール）** ドロップダウンメニューまたはショートカットボタンを使用して、VMを **Stop（停止）** します。マシンが不安定な状態にあり、正常なシャットダウンを試みようとするため、このプロセスには長い時間がかかる場合があります。もう一度 **Actions（アクション） -> Control（コントロール）** ドロップダウンメニューをクリックすると、**Force stop（強制停止）** のオプションが表示されます。ラボを続行するために、このオプションを使用してください。
 
-. **Overview（概要）** タブをクリックして、VMが停止したことを確認します。また、先ほど取得したスナップショットが **Snapshots** タイルにリストされていることも確認できます。
+. **Overview（概要）** タブをクリックして、VMが停止したことを確認します。また、先ほど取得したスナップショットが **Snapshots（スナップショット）** タイルにリストされていることも確認できます。
 +
 image::2026_spring/module-03-storage/11_VM_Stopped_Snapshot.png[link=self, window=blank, width=100%]
 
-. **Snapshots** タイルで、スナップショットの横にある3つのドットのメニューをクリックします。VMが停止したことで、**Restore（復元）** がグレーアウトされなくなっていることがわかります。それをクリックします。
+. **Snapshot（スナップショット）s** タイルで、スナップショットの横にある3つのドットのメニューをクリックします。VMが停止したことで、**Restore（復元）** がグレーアウトされなくなっていることがわかります。それをクリックします。
 +
 image::2026_spring/module-03-storage/12_VM_Restore.png[link=self, window=blank, width=100%]
 
@@ -131,7 +131,7 @@ image::2026_spring/module-03-storage/12_VM_Restore.png[link=self, window=blank, 
 +
 image::2026_spring/module-03-storage/13_VM_Restore_Dialog.png[link=self, window=blank, width=100%]
 
-. VMが復元されるまで待ちます。プロセスはかなり迅速に行われるはずです。上部にある **Snapshots** タブをクリックすると、最後に行われた復元操作の詳細を確認できます。
+. VMが復元されるまで待ちます。プロセスはかなり迅速に行われるはずです。上部にある **Snapshots（スナップショット）** タブをクリックすると、最後に行われた復元操作の詳細を確認できます。
 +
 image::2026_spring/module-03-storage/14_VM_Restored.png[link=self, window=blank, width=100%]
 
@@ -151,11 +151,11 @@ image::2026_spring/module-03-storage/16_VM_Running.png[link=self, window=blank, 
 +
 image::2026_spring/module-03-storage/17_Overview_Actions_Clone.png[link=self, window=blank, width=100%]
 
-. **Actions** メニューから **Clone（クローン）** を押すと、ダイアログが開きます。クローンされたVMの名前を **fedora02** に変更し、**Start VirtualMachine on clone（VirtualMachine を作成したら起動する）** のチェックボックスがオフのままであることを確認し、**Clone（クローン）** をクリックします。
+. **Actions（アクション）** メニューから **Clone（クローン）** を押すと、ダイアログが開きます。クローンされたVMの名前を **fedora02** に変更し、**Start VirtualMachine on clone（VirtualMachine を作成したら起動する）** のチェックボックスがオフのままであることを確認し、**Clone（クローン）** をクリックします。
 +
 image::2026_spring/module-03-storage/18_VM_Clone_Dialog.png[link=self, window=blank, width=100%]
 
-. 新しいVMが作成され、ディスクがクローンされ、ポッドが自動的に新しいVMへとリダイレクトされます。**Created（作成日時）** がごく最近になっていることが確認できます。
+. 新しいVMが作成され、ディスクがクローンされ、ポッドが自動的に新しいVMへとリダイレクトされます。**Created（作成済み）** がごく最近になっていることが確認できます。
 +
 image::2026_spring/module-03-storage/19_VM_Cloned.png[link=self, window=blank, width=100%]
 +
