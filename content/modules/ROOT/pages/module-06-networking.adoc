@@ -1,205 +1,330 @@
 
-= 仮想マシンのネットワーク管理
+= 仮想マシンとアプリケーションの連携
 
 == 導入
 
-このワークショップの前のセクションで触れたように、すべての仮想マシンはデフォルトでOpenShiftのソフトウェア定義ネットワーク（SDN：ポッドネットワーク）にアタッチされます。これにより、他のVMやOpenShiftネイティブのアプリケーションを含むクラスター上の他のワークロードからのアクセスが可能になり、仮想マシンとそれがホストするアプリケーションをよりモダンなワークフローで一元管理できるようになります。
+このラボのセクションは、多くの管理者がOpenShift Virtualization環境で仮想マシンを操作する際に実行する必要がある「Day 2運用（運用フェーズのタスク）」に特化しています。このロードショーを通じて培ってきた、OpenShift環境でVMがどのように動作するかという理解を活用し、それらのスキルを使ってこのセクションのタスクを完了させます。今回の具体的なケースでは、このロードショーの前のセクションでVMware vSphereからインポートした3台の仮想マシンを使用し、それらのサーバーでホストされているアプリケーションがOpenShift Virtualizationで動作するにあたり、外部からアクセスできるようにするためのマイナーな構成変更を行います。これを達成するために、OpenShiftのSDNポッドネットワークを使用する際のデフォルトである「Service（サービス）／Route（ルート）」方式を使用してアプリケーションを公開し、クラスターの外部からアプリケーションに到達できるようにします。これにより、VM内に常駐するアプリケーションを直接外部公開するという、よりモダンなアプローチによる仮想マシン管理を体験できます。
 
-* SDNは、クラスター内にVMとしてデプロイされているかポッドとしてデプロイされているかを問わず、制御された方法でアプリケーションを抽象化、接続、および外部公開するための追加機能を提供します。これには、別のモジュールで探索するOpenShiftの **Service（サービス）** や **Route（ルート）** 機能が含まれます。
-* OpenShiftのネットワークポリシー（Network Policy）エンジンを使用すると、VMユーザーや管理者は、個々のVMまたはプロジェクト／ネームスペース全体に宛てた、あるいはそこから送信されるネットワークトラフィックを許可または拒否するルールを作成できます。
-
-しかし、必要に応じて、仮想マシンを未タグ（ネイティブ）ネットワークやVLANなどの1つ以上の物理ネットワークに直接接続することも可能です。これはSDNに「加えて」利用できる機能であり、例えば管理者が外部IPアドレスからVMに直接接続したり、VM同士がレイヤー2（L2）ネットワークを使用して直接通信したりできるようになります。
-
-ハイレベルな視点で見ると、これはLinuxブリッジなどのホストネットワーキングを構成することによって実現されます。このワークショップのセクションでは、そのプロセスの次のステップとして、VMをそのブリッジに接続し、結果として物理ネットワークに直接接続できるようにするための「ネットワーク接続定義（Network Attachment Definition：NAD）」を作成する手順を説明します。
-
-[NOTE]
+[IMPORTANT]
 ====
-OpenShift環境では、仮想マシンが接続するためのLinuxブリッジがあらかじめ各コンピュートノード（ワーカーノード）上に構成されているため、外部のネットワークリソースとの間での双方向の接続が容易に行えるようになっています。
+「既存の仮想マシンの移行」モジュールを完了していない場合は、まずそのモジュールを実行することをお勧めします。まだ完了していない場合、または移行プロセスがまだ保留中の場合は、**vmimported-{user}** プロジェクトにあらかじめ用意（ステージング）されている既存の仮想マシンを使用して、このセクションを完了することができます。xref:module-07-workingvms.adoc#service_route_imported[MTVでインポートしたVM] を使用するか、xref:module-07-workingvms.adoc#service_route_staged[ステージング済みのVM] を使用するかに応じて、以下の該当するセクションまでスキップしてください。
 ====
 
-== 環境の確認
+[[service_route_imported]]
+== サービス／ルートによるアプリケーションの公開 - MTVインポートVMの場合
 
-**Kubernetes NMState Operator** は、OpenShiftクラスターのノード全体にわたって、状態駆動型（State-driven）のネットワーク構成を実行するためのKubernetes APIを提供します。これにより、ユーザーはクラスターノード上のさまざまなネットワークインターフェースタイプ、DNS、およびルーティングを構成する機能を利用できます。さらに、クラスターノード上のデーモンは、各ノードのネットワークインターフェースの状態を定期的にAPIサーバーにレポートします。
+前述の通り、デフォルトでは仮想マシンはSDN（ポッドネットワーク）に接続されており、これはネットワークの残りの部分へのアクセスを付与するための便利で簡単な方法です。しかし、仮想マシンやOpenShiftクラスター内の他のポッドにとって、仮想化されたアプリケーションを検出して接続することは困難な場合があります。これを解決するために、**Service（サービス）** を使用して2台のWindowsベースのWebサーバー間で接続の負荷分散（ロードバランス）を行い、サービス検出用のDNSエントリを作成した上で、外部のクライアントが仮想マシン内でホストされているアプリケーションにアクセスできるようにするための **Route（ルート）** を作成します。
 
-. 左側メニューで **Networking（ネットワーク）** -> **Node network configuration（ノードネットワーク構成）** の順にクリックし、現在の構成を確認します。画面を自由に探索してみてください。コントロールプレーンノードは台形、ワーカーノードは長方形のグラフィックで表示されています。
+=== サービス（Service）の導入
+
+**Service** はトラフィックの送信元／送信先を識別し、ラベル（Label）に基づいてクライアントをエンドポイント（ポッド／VM）に誘導します。現時点では、これらのVMにはまだラベルが割り当てられていません。
+
+VMをサービスに正常に関連付けるには、以下の作業を行う必要があります。
+
+* VMにラベルを追加する。2台のWindows IISサーバーは双方とも同じロードバランサーの背後に配置されるため、双方に同じラベルを使用します。
+* 2台のWindows IISサーバーをクラスター上の他のワークロードから利用できるようにするためのサービスを作成する。OpenShiftは、サービスの名称をDNS名として使用し、ロードバランサーに内部アクセスできるように自動構成します。
+* **Route** を作成して、OpenShiftの外部からサービスを利用できるようにする。
+
+まずは、OpenShift VirtualizationのGUIで仮想マシンの定義を変更し、ラベルを追加することから始めましょう。
+
+=== 仮想マシンへのラベル付与
+
+. 左側メニューの **Virtualization（仮想化） -> VirtualMachines（仮想マシン）** をクリックし、**vmexamples-{user}** プロジェクトをクリックして、インポートした3台の仮想マシン（**database-{user}、winweb01-{user}、winweb02-{user}**）がまだ実行されていない場合は **Start（開始）** します。右側のツリービューで **Status（ステータス）** 列でソートすると、簡単に状態を確認できます。
 +
-image::2026_spring/module-06-networking/01_NodeNetworkState_Graph.png[link=self, window=blank, width=100%]
+image::2026_spring/module-07-workingvms/01_Imported_VMs_List.png[link=self, window=blank, width=100%]
 
-. いずれかのワーカーノードをズームイン（拡大）すると、接続されている各インターフェースと、それらが現在OpenShiftクラスター内で何にマッピングされているかを確認できます。それぞれのインターフェースを自由に確認してみてください。
+. **winweb01-{user}** VMを選択し、**YAML** タブに移動します。
+. **spec:** セクションを探し、その下の **template.metadata** 内にある **labels** セクションに以下を追加します。
 +
-image::2026_spring/module-06-networking/02_NodeNetworkState_Zoom.png[link=self, window=blank, width=100%]
-
-. 前述の通り、ワーカーノードにはこのモジュールで使用するためのLinuxブリッジがすでに構成されていることがわかります。ブリッジ **br-flat** をクリックして、詳細情報を確認してみましょう。
-+
-image::2026_spring/module-06-networking/02a_NodeNetworkState_Info.png[link=self, window=blank, width=100%]
-
-. 角にある「X」をクリックしてブリッジの詳細を閉じます。この **br-flat** という名前のブリッジは、*Kubernetes NMState Operator* を使用して作成されたものです。さらに詳しく調べるために、左側メニューの **NodeNetworkConfigurationPolicy** をクリックします。
-+
-image::2026_spring/module-06-networking/03_NodeNetworkConfigurationPolicy_List.png[link=self, window=blank, width=100%]
-
-. **br-flat** を選択して情報を表示します。
-+
-image::2026_spring/module-06-networking/04_NodeNetworkConfigurationPolicy_Info.png[link=self, window=blank, width=100%]
-
-[NOTE]
-====
-*NodeNetworkConfigurationPolicy* はノードレベルでの構成を実行するため、現在の通常ユーザーアカウントではこれらのオプションを変更することはできません。そのため、管理者にお問い合わせくださいというプロンプトが表示されます。
-====
-
-. このブリッジがどのように作成されたかを確認するために、**YAML** タブに切り替えて定義を確認できます。管理者権限があれば、以下のYAMLスニペットを使用して同様のブリッジを作成することができます。
-+
-image::2026_spring/module-06-networking/05_NodeNetworkConfigurationPolicy_YAML.png[link=self, window=blank, width=100%]
-
-== ネットワーク接続定義の作成
-
-LinuxブリッジをVMで使用するには、**ネットワーク接続定義（Network Attachment Definition：NAD）** を作成する必要があります。これがOpenShiftに該当ネットワークの存在を知らせ、仮想マシンがそこに接続できるようにするための設定となります。ネットワーク接続定義は、それが作成されたプロジェクトにスコープ（制限）が限定され、そのプロジェクト内にデプロイされた仮想マシンからのみアクセスできます。もしネットワーク接続定義が `default` プロジェクト内で作成された場合は、グローバルに（すべてのプロジェクトから）利用可能になります。これにより、管理者である皆様は、独自のVMの管理権限を持つ特定のユーザーに対して、どのネットワークを利用可能にするか（あるいはさせないか）を制御できます。
-
-[NOTE]
-====
-ネットワーク接続定義は、OpenShiftに対して既存のネットワークデバイスを使用するように指示します。今回のケースでは、そのデバイスはあらかじめ作成されており、**br-flat** という名前が付いています。必ずこの正確な名前を使用する必要があります。そうしないと、その固有の名前を持つネットワークデバイスが存在するノードをOpenShiftが検出できず、VMをいずれのコンピュートノードにも配置できなくなります。
-====
-
-. 左側メニューから **Networking（ネットワーク）**、**Network Attachment Definitions（ネットワーク接続定義）** の順に選択し、**Create network attachment definition（NetworkAttachmentDefinitionの作成）** ボタンをクリックします。
-+
-image::2026_spring/module-06-networking/06_NetworkAttachDefinition_Create.png[link=self, window=blank, width=100%]
+[source,yaml,role=execute]
+----
+env: webapp
+----
 +
 
 [IMPORTANT]
 ====
-ネットワーク接続定義を作成する際は、必ずご自身の **vmexamples-{user}** プロジェクト内にいることを確認してください。
+インデント（字下げ）が以下のスクリーンショットと完全に一致していることを確認してください。
 ====
 
-. **vmexamples-{user}** プロジェクト用のフォームを以下のように入力し、**Create（作成）** をクリックします。
+image::2026_spring/module-07-workingvms/02_Imported_VMs_YAML.png[link=self, window=blank, width=100%]
 
-* **Name（名前）**: `flatnetwork`
-* **Network Type（ネットワークタイプ）**: `Linux bridge`
-* **Bridge Name（ブリッジ名）**: `br-flat`
-
-image::2026_spring/module-06-networking/07_NetworkAttachDefinition_Create_Form.png[link=self, window=blank, width=100%]
+. **Save（保存）** ボタンをクリックすると、VMが新しいバージョン番号に更新されたというプロンプトが表示されます。
+. VM **winweb02-{user}** に対しても同じプロセスを **繰り返し** 行います。
+. 構成の変更が完了したら、**winweb01-{user}** と **winweb02-{user}** の双方を再起動します。
 +
 [NOTE]
 ====
-ホスト上の単一のOVS（Open vSwitch）またはLinuxブリッジには、多数の異なるVLANを関連付けることができます。これは、ホスト側に個別のインターフェースやブリッジを物理的に作成するのではなく、目的のVLANごとにネットワーク接続定義を作成することで実現します。このラボではタグなしのネットワークを使用しているため、この演習ではVLAN番号を指定する必要はありません。
+各VMのコンソール（Console）タブにアクセスし、VMが正常に動作していることを確認してください。
 ====
 
-. ネットワーク接続定義の詳細を確認します。これは **vmexamples-{user}** プロジェクト内で作成されたため、他のプロジェクトでは利用できません。
-+
-image::2026_spring/module-06-networking/08_NetworkAttachDefinition_Created.png[link=self, window=blank, width=100%]
+=== サービスの作成
 
-== 仮想マシンのネットワークへのアタッチ
-. 左側メニューで **Virtualization（仮想化） -> VirtualMachines（仮想マシン）** に移動し、中央の列から **fedora01** VMを選択します。**Configuration（設定）** タブをクリックし、左側の **Network（ネットワーク）** タブをクリックします。
+. 左側メニューで **Networking（ネットワーク）** を展開し、**Services（サービス）** をクリックします。読み込まれた画面で、隅にある **Create Service（Serviceの作成）** ボタンをクリックします。
 +
-image::2026_spring/module-06-networking/09_VM_Network_Tab.png[link=self, window=blank, width=100%]
+image::2026_spring/module-07-workingvms/03_Navigate_Service.png[link=self, window=blank, width=100%]
 
-. **Add Network Interface（ネットワークインターフェースの追加）** をクリックし、表示されたフォームを画像通りに入力して、**Save（保存）** をクリックします。
+. デフォルトのYAMLを以下の定義に置き換えます。
 +
-image::2026_spring/module-06-networking/10_VM_Network_Attach.png[link=self, window=blank, width=100%]
+[source,yaml,role=execute,subs="attributes"]
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp
+  namespace: vmexamples-{user}
+spec:
+  selector:
+    env: webapp
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+----
++
+image::2026_spring/module-07-workingvms/04_Service_YAML.png[link=self, window=blank, width=100%]
+
+. 下部にある **Create（作成）** ボタンをクリックします。YAMLが保存されたという通知が表示されます。
+. 新しく作成された **webapp** サービスの詳細ページから、**Pod selector（ポッドセレクター）** のリンクを探してクリックします。
++
+image::2026_spring/module-07-workingvms/05_Imported_VMs_PodSelector.png[link=self, window=blank, width=100%]
+
+. 2台のWindows VMが、サービスによって適切に識別され、ターゲットとして指定されていることを確認します。
++
+image::2026_spring/module-07-workingvms/06_Imported_VMs_Pods.png[link=self, window=blank, width=100%]
+
+=== ルートの作成
+
+これで、Windows IISサーバーにOpenShiftクラスター内部からアクセスできるようになりました。他の仮想マシンは、サービスの名称＋ネームスペースによって決定されるDNS名（**webapp.vmexamples-{user}**）を使用してこれらにアクセスできます。しかし、これらのWebサーバーはアプリケーションのフロントエンドであるため、外部からアクセスできるようにする必要があります。これは、**Route（ルート）** を使用してパブリックに公開することで実現します。
+
+. **Networking（ネットワーク）** の下にある、左側ナビゲーションメニューの **Routes（ルート）** オプションをクリックします。画面中央にある **Create Route（Routeの作成）** ボタンをクリックします。
++
+image::2026_spring/module-07-workingvms/07_Route_Navigation.png[link=self, window=blank, width=100%]
+
+. 以下の情報を使用してフォームを入力し、完了したら一番下までスクロールして **Create（作成）** ボタンをクリックします。
++
+.. **Name（名前）**: `route-webapp`
+.. **Service（サービス）**: `webapp`
+.. **Target port（ターゲットポート）**: `80 -> 80 (TCP)`
+.. **Secure Route（セキュアルート）**: **有効（チェックを入れる）**
+.. **TLS termination（TLS終端）**: **Edge**
+.. **Insecure traffic（安全でないトラフィック）**: **Redirect(リダイレクト)**
++
+image::2026_spring/module-07-workingvms/08_Create_Route.png[link=self, window=blank, width=100%]
+
+. **Location（場所）** フィールドに表示されているアドレスに移動（アクセス）します。
++
+image::2026_spring/module-07-workingvms/09_Route_Access.png[link=self, window=blank, width=100%]
+
+. ページが読み込まれるとエラーが表示されます。期待通りに動作していないため、何かが間違っているはずです。
++
+image::2026_spring/module-07-workingvms/10_WebApp_Error.png[link=self, window=blank, width=100%]
+
+. この接続性の問題に対処するため、Webサーバーからアクセスできるように、**database-{user}** VM用のサービスも作成する必要があります。
+
+. 再び **Networking（ネットワーク）** -> **Services（サービス）** に移動し、**Create Service（Serviceの作成）** ボタンを押します。YAMLを以下の定義に置き換えます。
++
+[source,yaml,role=execute,subs="attributes"]
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+  namespace: vmexamples-{user}
+spec:
+  selector:
+    vm.kubevirt.io/name: database-{user}
+  ports:
+  - protocol: TCP
+    port: 3306
+    targetPort: 3306
+----
++
+
+image::2026_spring/module-07-workingvms/11_Database_YAML.png[link=self, window=blank, width=100%]
+
+. YAMLを貼り付けたら、**Create（作成）** ボタンをクリックします。
+. ブラウザでWebアプリケーションのURLをリロード（再読み込み）します。移行されたWebアプリケーションが正常に動作し、適切な結果が表示されることを確認してください。
++
+image::2026_spring/module-07-workingvms/12_WebApp_Success.png[link=self, window=blank, width=100%]
+
+. 画面を数回リフレッシュ（更新）してみます。どのWebサーバーが応答しているかが表示され、リフレッシュするたびにユーザーのアクセス回数（Count）が増加することを確認してください。
+. OpenShiftコンソールに戻り、**Virtualization（仮想化） -> VirtualMachines（仮想マシン）** をクリックして、リクエストを処理しているWebサーバーをシャットダウン（停止）します。
++
+image::2026_spring/module-07-workingvms/13_WinWeb01_Shutdown.png[link=self, window=blank, width=100%]
+
+. WebアプリケーションのURLを開いているタブに戻り、画面をリフレッシュします。残りのWebサーバーがリクエストを返し始め、リフレッシュするたびにカウントが増え続けることを確認してください。2台の仮想Webサーバー間で負荷分散を行うようにサービスが正常に構成されていることが実証されました。
++
+image::2026_spring/module-07-workingvms/14_WinWeb02_Online.png[link=self, window=blank, width=100%]
 +
 [NOTE]
 ====
-これは外部ネットワークに直接接続するブリッジであるため、このネットワークを使用する仮想マシンのアクセスを有効にするために、マスカレード（NAT）などのOpenShiftの機能やケーパビリティに依存する必要はありません。その結果、ここでの **Type（タイプ）** は **Bridge** に設定する必要があります。
+これはシンプルな例ですが、OpenShift内の仮想マシン間で負荷分散サービスを構成し、アプリケーションのニーズを満たすための方法は他にもたくさんあることを覚えておいてください。
 ====
 
-. **Actions（アクション） -> Control（コントロール）** メニューまたは **Start（開始）** ショートカットボタンを使用してVMを起動し、**Console（コンソール）** タブに切り替えて起動の様子を見守ります。
+[[service_route_staged]]
+== サービス／ルートによるアプリケーションの公開 - ステージング済みのVMの場合
+
+前述の通り、デフォルトでは仮想マシンはSDN（ポッドネットワーク）に接続されており、これはネットワークの残りの部分へのアクセスを付与するための便利で簡単な方法です。しかし、仮想マシンやOpenShiftクラスター内の他のポッドにとって、仮想化されたアプリケーションを検出して接続することは困難な場合があります。これを解決するために、**Service（サービス）** を使用して2台のWindowsベースのWebサーバー間で接続の負荷分散（ロードバランス）を行い、サービス検出用のDNSエントリを作成した上で、外部のクライアントが仮想マシン内でホストされているアプリケーションにアクセスできるようにするための **Route（ルート）** を作成します。
+
+=== サービス（Service）の導入
+
+**Service** はトラフィックの送信元／送信先を識別し、ラベル（Label）に基づいてクライアントをエンドポイント（ポッド／VM）に誘導します。現時点では、これらのVMにはまだラベルが割り当てられていません。
+
+VMをサービスに正常に関連付けるには、以下の作業を行う必要があります。
+
+* VMにラベルを追加する。2台のWindows IISサーバーは状況として同じロードバランサーの背後に配置されるため、双方に同じラベルを使用します。
+* 2台のWindows IISサーバーをクラスター上の他のワークロードから利用できるようにするためのサービスを作成する。OpenShiftは、サービスの名称をDNS名として使用し、ロードバランサーに内部アクセスできるように自動構成します。
+* **Route** を作成して、OpenShiftの外部からサービスを利用できるようにする。
+
+まずは、OpenShift VirtualizationのGUIで仮想マシンの定義を変更し、ラベルを追加することから始めましょう。
+
+=== 仮想マシンへのラベル付与
+
+. 左側メニューの **Virtualization（仮想化） -> VirtualMachines（仮想マシン）** をクリックし、**vmimported-{user}** プロジェクトをクリックして、インポート済みの3台の仮想マシン（**database、winweb01、winweb02**）がまだ実行されていない場合は **Start（開始）** します。右側のツリービューで **Status（ステータス）** 列でソートすると、簡単に状態を確認できます。
 +
-image::2026_spring/module-06-networking/11_VM_Network_Startup.png[link=self, window=blank, width=100%]
+image::2026_spring/module-07-workingvms/15_Staged_VMs_List.png[link=self, window=blank, width=100%]
+
+. **winweb01** VMを選択し、**YAML** タブに移動します。
+. **spec:** セクションを探し、その下の **template.metadata** セクション内で、以下の構文を使用してVMにラベルを追加します。
 +
-接続したフラットネットワーク上にはIPアドレスを提供するDHCPサーバーが存在するため、**enp2s0** インターフェースは該当ネットワーク（**192.168.64.0/18**）から正常にIPアドレスを取得します。
-+
-image::2026_spring/module-06-networking/12_VM_Network_Console.png[link=self, window=blank, width=100%]
-
-. 同様の手順を繰り返し、**fedora02** VMも同じ **flatnetwork** ネットワークにアタッチします。
-
-. コンソールで **ping** コマンドを使用し、2つのVM（fedora01 と fedora02）の間で直接通信が行えることを実証します。
-+
-image::2026_spring/module-06-networking/13_VM_Network_Ping.png[link=self, window=blank, width=100%]
-
-== ユーザー定義ネットワーク
-
-ユーザー定義ネットワーク（User Defined Networks：UDN）が実装される前は、OpenShift Container Platform用のOVN-Kubernetes CNIプラグインは、プライマリ（メイン）ネットワーク上でレイヤー3（L3）トポロジーのみをサポートしていました。Kubernetesの設計原則により、すべてのポッドはメインネットワークにアタッチされ、すべてのポッドがIPアドレスによって相互に通信し、ポッド間のトラフィックはネットワークポリシーに従って制限されます。このコンテナ特有の新しいネットワークアーキテクチャを学ぶことは、従来の多くの仮想化管理者にとって懸念点として挙げられることがよくありました。
-
-UDNの導入により、隔離されたカスタムのレイヤー2（L2）、レイヤー3（L3）、およびローカルネット（LocalNet）のネットワークセグメントが有効化され、デフォルトにおけるKubernetesポッドネットワークのL3トポロジーの柔軟性とセグメンテーション機能が向上します。これらのセグメントはすべてデフォルトで相互に隔離されています。これらのセグメントは、デフォルトのOVN-Kubernetes CNIプラグインを使用するコンテナポッドや仮想マシンのプライマリまたはセカンダリネットワークのいずれかとして機能します。UDNは幅広いネットワークアーキテクチャとトポロジーを可能にし、ネットワークの柔軟性、セキュリティ、およびパフォーマンスを向上させます。
-
-クラスター管理者は、UDNを使用して、`ClusterUserDefinedNetwork` カスタムリソース（CR）を活用することにより、クラスターレベルで複数のネームスペースにまたがる追加のネットワークを作成・定義できます。さらに、クラスター管理者またはクラスターユーザーは、`UserDefinedNetwork` CRを使用して、ネームスペースレベルで追加のネットワークを定義することもできます。
-
-ユーザー定義ネットワークには以下のメリットがあります。
-
-* **セキュリティのための強化されたネットワーク隔離** : Red Hat OpenStack Platform（RHOSP）でテナントが隔離されるのと同様に、ネームスペースごとに独自の隔離されたプライマリネットワークを持たせることができます。これにより、テナント間のクロスウェブトラフィックのリスクが軽減され、セキュリティが向上します。
-* **ネットワークの柔軟性** : クラスター管理者は、プライマリネットワークをレイヤー2またはレイヤー3のネットワークタイプとして構成できます。これにより、従来のセカンダリネットワークが持っていた柔軟性をプライマリネットワークにもたらすことができます。
-* **簡素化されたネットワーク管理** : ユーザー定義ネットワークを使用すると、異なるネットワーク内でワークロードをグループ化するだけで隔離が達成されるため、複雑なネットワークポリシーを策泊する必要がなくなります。
-* **高度な機能** : ユーザー定義のネットワーキング機能により、管理者は複数のネームスペースを単一のネットワークに接続したり、異なるネームスペースのセットに対して個別のネットワークを作成したりできます。ユーザーは、異なるネームスペースやクラスター間でIPサブネットを指定して再利用することもできるため、一貫したネットワーキング環境が提供されます。
-
-=== OpenShift Virtualizationにおけるユーザー定義ネットワーク
-
-OpenShift Container PlatformのWebコンソールまたはCLIを使用して、仮想マシン（VM）のプライマリインターフェース上にユーザー定義ネットワーク（UDN）を接続できます。プライマリユーザー定義ネットワークは、指定されたネームスペース内のデフォルトのポッドネットワークを「置き換え」ます。ポッドネットワークとは異なり、プライマリUDNはプロジェクトごとに定義でき、各プロジェクトで固有のサブネットとトポロジーを使用できます。
-
-レイヤー2（L2）トポロジーを使用すると、OVN-Kubernetesはノード間にオーバーレイネットワークを作成します。このオーバーレイネットワークを使用することで、追加の物理ネットワークインフラストラクチャを一切構成することなく、異なるノード上のVM同士を接続できます。
-
-レイヤー2トポロジーは、ライブマイグレーション中もクラスターノード間で永続IPアドレスがそのまま維持されるため、ネットワークアドレス変換（NAT）を必要とせずに、VMのシームレスなマイグレーション（移動）を可能にします。
-
-ただし、プライマリUDNを実装する前に、以下の制限事項を考慮する必要があります。
-
-1. VMへのSSHアクセスを構成するために `virtctl ssh` コマンドを使用することはできません。
-2. VMへのポートフォワードを実行するために `oc port-forward` コマンドを使用することはできません。
-3. VMへのアクセスにヘッドレスサービス（Headless Service）を使用することはできません。
-4. VMのヘルスチェックを構成するためのReadiness（レディネス）プロブやLiveness（ライブネス）プロブを定義することはできません。
-
-=== ユーザー定義ネットワークの操作
-
-ユーザー定義ネットワークを操作する前に、UDNやそれにアクセスする仮想マシンを作成するよりも「前」に、適切なラベルが付与された専用のネームスペースを作成しておく必要があります。VMが存在する既存のネームスペースを新しいネットワークに割り当てたり、既存の通常のネームスペースにUDNを作成したりすることは、OVN-Kubernetesによって拒否されます。
-
-このタスクはクラスター管理者が実行する必要があります。このラボ環境では、適切なラベル（`k8s.ovn.org/primary-user-defined-network`）が付与された **vmexamples-{user}-udn** という名前のネームスペースがあらかじめ割り当てられています。
-
-. **Networking（ネットワーク）** -> **UserDefinedNetworks（ユーザー定義ネットワーク）** の順にクリックし、プロジェクトとして **vmexamples-{user}-udn** が選択されていることを確認して、**Create UserDefinedNetwork（ユーザー定義ネットワークの作成）** ボタンをクリックします。
-+
-image::2026_spring/module-06-networking/14_UDN_List.png[link=self, window=blank, width=100%]
-
-. ドロップダウンリストから現在のプロジェクト **vmexamples-{user}-udn** を選択し、サブネットに `192.168.254.0/24` を追加して、**Create（作成）** を押します。
-+
-image::2026_spring/module-06-networking/16_UDN_Form.png[link=self, window=blank, width=100%]
-
-. 作成されたばかりのUDNの構成を確認します。
-+
-image::2026_spring/module-06-networking/17_UDN_Created.png[link=self, window=blank, width=100%]
+[source,yaml,role=execute]
+----
+labels:
+  app: winweb01
+  env: webapp
+----
 +
 
-* フォームを使用して作成した場合のデフォルト名は **primary-udn** になります。
-* デフォルトのネットワークトポロジーは **Layer 2** です（現在、OpenShift Virtualizationではレイヤー2とLocalNetのみがサポートされています）。
-* ロール（Role）は **primary** です。
-* 関連するネットワーク接続定義（NAD）が自動的に作成されます。
+[IMPORTANT]
+====
+インデント（字下げ）が以下のスクリーンショットと完全に一致していることを確認してください。
+====
 
-. ここで左側メニューの **Networking -> NetworkAttachmentDefinitions** に移動すると、関連付けられたNADが自動的に作成されていることが確認できます。
-+
-image::2026_spring/module-06-networking/18_UDN_NAD.png[link=self, window=blank, width=100%]
+image::2026_spring/module-07-workingvms/16_Staged_VMs_YAML.png[link=self, window=blank, width=100%]
 
-. プライマリユーザー定義ネットワークにアタッチされた仮想マシンの作成は、プライマリUDNが定義されているプロジェクト内でテンプレートやインスタンスタイプからマシンを作成するのと同様にシンプルです。UDNは、UDNサポートが有効になっていない他のプロジェクトで見られるようなデフォルトの（ポッド）ネットワークを置き換えます。これをテストするために、今すぐ作成してみましょう。
+. **Save（保存）** ボタンをクリックすると、VMが新しいバージョン番号に更新されたというプロンプトが表示されます。
+. VM **winweb02** に対しても、以下の構文を使用して同じプロセスを **繰り返し** 行います。
++
+[source,yaml,role=execute]
+----
+labels:
+  app: winweb02
+  env: webapp
+----
++
+. 構成の変更が完了したら、**winweb01** と **winweb02** の双方を再起動します。
++
+[NOTE]
+====
+各VMのコンソール（Console）タブにアクセスし、VMが正常に動作していることを確認してください。
+====
 
-. 左側のナビゲーションメニューで **Virtualization -> VirtualMachines** をクリックし、**vmexamples-{user}-udn** プロジェクトを選択して、**Create VirtualMachine（VirtualMachineの作成）** ボタンをクリックし、ドロップダウンメニューから **From InstanceType（InstanceTypeから）** を選択します。
-+
-image::2026_spring/module-06-networking/19_Create_UDN_VM.png[link=self, window=blank, width=100%]
+=== サービスの作成
 
-. **fedora** のインスタンスタイプを選択し、他のすべてのオプションはデフォルトのままにして、一番下までスクロールして **Create VirtualMachine（VirtualMachineの作成）** ボタンをクリックします。
+. 左側メニューで **Networking（ネットワーク）** を展開し、**Services（サービス）** をクリックします。読み込まれた画面で、ページ中央にある **Create Service（Serviceの作成）** ボタンをクリックします。
 +
-image::2026_spring/module-06-networking/20a_Fedora_InstanceType.png[link=self, window=blank, width=100%]
-+
-image::2026_spring/module-06-networking/20b_Create_VM.png[link=self, window=blank, width=100%]
+image::2026_spring/module-07-workingvms/17_Navigate_Service.png[link=self, window=blank, width=100%]
 
-. **VirtualMachines** に切り替えて、VMが作成される様子を見守ります。起動して実行状態になったら、新しく作成された仮想マシンを確認します。**Overview（概要）** タブにおいて、**Network** タイルにはデフォルトネットワークにアタッチされていると表示されますが、割り当てられているIPアドレスはユーザー定義ネットワーク（UserDefinedNetwork）から割り当てられたものになっています。
+. デフォルトのYAMLを以下の定義に置き換えます。
 +
-image::2026_spring/module-06-networking/21_UDN_Network_Tile.png[link=self, window=blank, width=100%]
+[source,yaml,role=execute,subs="attributes"]
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp
+  namespace: vmimported-{user}
+spec:
+  selector:
+    env: webapp
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+----
++
 
-. コンソール（Console）タブに切り替え、提供されているゲストの資格情報を使用してVMにログインします。
-. **www.google.com** のようなパブリックなWebサイトに **ping** を送信し、プライマリUDN上でネットワーク通信が行えていることを示します。
+image::2026_spring/module-07-workingvms/18_Service_YAML.png[link=self, window=blank, width=100%]
+
+. 下部にある **Create（作成）** ボタンをクリックします。YAMLが保存されたという通知が表示されます。
+. 新しく作成された **webapp** サービスの詳細ページから、**Pod selector（ポッドセレクター）** のリンクを探してクリックします。
 +
-image::2026_spring/module-06-networking/22_UDN_Fedora_Console.png[link=self, window=blank, width=100%]
+image::2026_spring/module-07-workingvms/19_Imported_VMs_PodSelector.png[link=self, window=blank, width=100%]
+
+. 2台のWindows VMが、サービスによって適切に識別され、ターゲットとして指定されていることを確認します。
++
+image::2026_spring/module-07-workingvms/20_Imported_VMs_Pods.png[link=self, window=blank, width=100%]
+
+=== ルートの作成
+
+これで、Windows IISサーバーにOpenShiftクラスター内部からアクセスできるようになりました。他の仮想マシンは、サービスの名称＋ネームスペースによって決定されるDNS名（**webapp.vmimported-{user}**）を使用してこれらにアクセスできます。しかし、これらのWebサーバーはアプリケーションのフロントエンドであるため、外部からアクセスできるようにする必要があります。これは、**Route（ルート）** を使用してパブリックに公開することで実現します。
+
+. **Networking（ネットワーク）** の下にある、左側ナビゲーションメニューの **Routes（ルート）** オプションをクリックします。画面中央にある **Create Route（Routeの作成）** ボタンをクリックします。
++
+image::2026_spring/module-07-workingvms/21_Route_Navigation.png[link=self, window=blank, width=100%]
+
+. 以下の情報を使用してフォームを入力し、完了したら一番下までスクロールして **Create（作成）** ボタンをクリックします。
++
+.. **Name（名前）**: `route-webapp`
+.. **Service（サービス）**: `webapp`
+.. **Target port（ターゲットポート）**: `80 -> 80 (TCP)`
+.. **Secure Route（セキュアルート）**: **有効（チェックを入れる）**
+.. **TLS termination（TLS終端）**: **Edge**
+.. **Insecure traffic（安全でないトラフィック）**: **Redirect（リダイレクト）**
++
+image::2026_spring/module-07-workingvms/22_Create_Route.png[link=self, window=blank, width=100%]
+
+. **Location（場所）** フィールドに表示されているアドレスに移動（アクセス）します。
++
+image::2026_spring/module-07-workingvms/23_Route_Access.png[link=self, window=blank, width=100%]
+
+. ページが読み込まれるとエラーが表示されます。期待通りに動作していないため、何かが間違っているはずです。
++
+image::2026_spring/module-07-workingvms/24_WebApp_Error.png[link=self, window=blank, width=100%]
+
+. この接続性の問題に対対処するため、Webサーバーからアクセスできるように、**database** VM用のサービスも作成する必要があります。
+
+. 再び **Networking（ネットワーク）** -> **Services（サービス）** に移動し、**Create Service（Serviceの作成）** ボタンを押します。YAMLを以下の定義に置き換えます。
++
+[source,yaml,role=execute,subs="attributes"]
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+  namespace: vmimported-{user}
+spec:
+  selector:
+    vm.kubevirt.io/name: database
+  ports:
+  - protocol: TCP
+    port: 3306
+    targetPort: 3306
+----
 +
 
-* VMには、定義されたサブネットからのIPが割り当てられている。
-* VMは、DHCPサーバーから自動的にゲートウェイ構成を取得している。
-* VMは、ユーザー定義ネットワークを使用してインターネットへのアクセス権を持っている。
+image::2026_spring/module-07-workingvms/25_Database_YAML.png[link=self, window=blank, width=100%]
+
+. YAMLを貼り付けたら、**Create（作成）** ボタンをクリックします。
+. ブラウザでWebアプリケーションのURLをリロード（再読み込み）します。移行されたWebアプリケーションが正常に動作し、適切な結果が表示されることを確認してください。
++
+image::2026_spring/module-07-workingvms/26_WebApp_Success.png[link=self, window=blank, width=100%]
+
+. 画面を数回リフレッシュ（更新）してみます。どのWebサーバーが応答しているかが表示され、リフレッシュするたびにユーザーのアクセス回数（Count）が増加することを確認してください。
+. OpenShiftコンソールに戻り、**Virtualization（仮想化） -> VirtualMachines（仮想マシン）** をクリックして、リクエストを処理しているWebサーバーをシャットダウン（停止）します。
++
+image::2026_spring/module-07-workingvms/27_WinWeb02_Shutdown.png[link=self, window=blank, width=100%]
+
+. WebアプリケーションのURLを開いているタブに戻り、画面をリフレッシュします。残りのWebサーバーがリクエストを返し始め、リフレッシュするたびにカウントが増え続けることを確認してください。2台の仮想Webサーバー間で負荷分散を行うようにサービスが正常に構成されていることが実証されました。
++
+image::2026_spring/module-07-workingvms/28_WinWeb01_Online.png[link=self, window=blank, width=100%]
++
+[NOTE]
+====
+これはシンプルな例ですが、OpenShift内の仮想マシン間で負荷分散サービスを構成し、アプリケーションのニーズを満たすための方法は他にもたくさんあることを覚えておいてください。
+====
 
 == まとめ
 
-このモジュールでは、物理ネットワークの操作と、既存のネットワークに仮想マシン（VM）を直接接続する方法について探索しました。VMを物理ネットワークに直接アタッチすることで、管理者はVMに直接アクセスできるようになると同時に、VMをストレージネットワークや管理ネットワークなどの特化型ネットワークに個別に接続させることができるようになります。
-
-また、クラスター管理者やエンドユーザーに対して、高度にカスタマイズ可能なネットワーク構成オプションを提供し、プライマリおよびセカンダリの双方のネットワークタイプを管理するための遥かに柔軟な体験をもたらす「ユーザー定義ネットワーク（UDN）」についても紹介しました。
+このモジュールでは、Red Hat OpenShiftのネイティブ機能であるService（サービス）やRoute（ルート）を使用して、OpenShift Virtualizationで実行されている仮想マシン（VMware vSphereから環境に移行したもの、またはクラスターにあらかじめ存在していたもの）をクラスター外部からアクセス可能にする、モダナイズされたアプローチを体験しました。これにより、インポートした仮想マシンやそこでホストされているアプリケーションを、実質的にコンテナ化されたアプリケーションと同様に扱うことができるようになります。これは、レガシーな仮想マシンでホストされていたアプリケーションをコンテナ化されたアプリケーションへと変換していく、モダナイゼーションへの道のりの第一歩となります。
