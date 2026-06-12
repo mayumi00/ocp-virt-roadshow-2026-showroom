@@ -1,3 +1,6 @@
+このラボの最初のセクションとして、以前に学んだ翻訳方針に基づき、実際のOpenShift日本語UIに適合させ、マニュアルとして自然な日本語訳を提供します。見出し（`==`）の部分は指示通り**日本語に翻訳された文面のみ**にしています。
+
+---
 
 = 仮想マシンの管理
 
@@ -183,11 +186,11 @@ image::2026_spring/module-01-intro/22_Network_Tab.png[link=self, window=blank, w
 +
 VMがクイック作成されると、デフォルトで *masquerade（マスカレード）* タイプの *Pod Networking（ポッドネットワーク）* 上のインターフェースが作成されます。これにより、VMがSDNに接続され、VMからOpenShiftクラスター外部の世界へのエグレス（送信）が提供されます。クラスター内の他のVMやポッドは、このインターフェースを使用して仮想マシンにアクセスできます。
 +
-さらに、SDNに接続されたVMは、Route（ルート）やロードバランサー（LoadBalancer）タイプのService（サービス）を使用して外部からアクセスすることや、Network Attachment Definition（ネットワークアタッチメント定義）やユーザー定義ネットワーク（UDN）によってVLANや外部ネットワークを定義して直接アタッチすることもできます。これらのオプションについては、後ほど詳しく探索します。
+さらに、SDNに接続されたVMは、Route（ルート）やロードバランサー（LoadBalancer）タイプのService（サービス）を使用して外部からアクセスすることや、Network Attachment Definition（ネットワーク接続定義）やユーザー定義ネットワーク（UDN）によってVLANや外部ネットワークを定義して直接アタッチすることもできます。これらのオプションについては、後ほど詳しく探索します。
 
 == 仮想マシンの状態の制御
 
-仮想化環境を管理する権限を付与されたユーザーとして、Webコンソールから仮想マシンの停止（Stop）、起動（Start）、再起動（Restart）、一時停止（Pause）、および一時停止解除（Unpause）を行うことができます。
+仮想化環境を管理する権限を付与されたユーザーとして、Webコンソールから仮想マシンの停止（Stop）、開始（Start）、再起動（Restart）、一時停止（Pause）、および一時停止解除（Unpause）を行うことができます。
 
 . *Overview（概要）* タブをクリックして、サマリー画面に戻ります。
 
@@ -209,17 +212,17 @@ image::2026_spring/module-01-intro/24_VM_Actions_Menu.png[link=self, window=blan
 +
 image::2026_spring/module-01-intro/25_VM_Stopped.png[link=self, window=blank, width=100%]
 
-. *Actions* から *Control* をクリックすると、*Start(開始)* オプションが表示され、*Restart（再起動）* と *Pause（一時停止）* オプションがグレーアウトしていることが確認できます。
+. *Actions（アクション）* から *Control（コントロール）* をクリックすると、*Start（開始）* オプションが表示され、*Restart（再起動）* と *Pause（一時停止）* オプションがグレーアウトしていることが確認できます。
 +
 image::2026_spring/module-01-intro/26_VM_Actions_List_Stopped.png[link=self, window=blank, width=100%]
 
 . *Start（開始）* をクリックし、*Running（実行中）* ステータスになるまで待ちます。
 
-. *Actions* メニュー、またはショートカットボタンを使用して、*Pause（一時停止）* オプションを押します。仮想マシンの状態が *Paused（一時停止中）* に変わります。
+. *Actions（アクション）* メニュー、またはショートカットボタンを使用して、*Pause（一時停止）* オプションを押します。仮想マシンの状態が *Paused（一時停止中）* に変わります。
 +
 image::2026_spring/module-01-intro/27_VM_Actions_Paused.png[link=self, window=blank, width=100%]
 
-. *Actions -> Control* メニューの *Unpause（一時停止の解除）* オプションを使用するか、ショートカットボタンを使用して、仮想マシンの動作を再開させます。
+. *Actions（アクション） -> Control（コントロール）* メニューの *Unpause（一時停止の解除）* オプションを使用するか、ショートカットボタンを使用して、仮想マシンの動作を再開させます。
 
 == 仮想マシンのライブマイグレーション
 
