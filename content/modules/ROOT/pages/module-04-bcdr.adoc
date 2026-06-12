@@ -127,7 +127,7 @@ image::2026_spring/module-04-bcdr/10_Deleted_VM.png[link=self, window=blank, wid
 
 . 再び **Ecosystem（エコシステム）** -> **Installed Operators（インストール済みのOperator）** をクリックし、**OADP Operator** を選択します。（必要に応じて、プロジェクトを **oadp-{user}** に切り替えてください。）
 
-. 水平ナビゲーションバーを使用して **Restore（復元）** タブを探してクリックし、**Create Restore（Restore（の作成）** を押します。
+. 水平ナビゲーションバーを使用して **Restore（復元）** タブを探してクリックし、**Create Restore（Restoreの作成）** を押します。
 +
 image::2026_spring/module-04-bcdr/11_Restore_Tab.png[link=self, window=blank, width=100%]
 
@@ -161,7 +161,7 @@ image::2026_spring/module-04-bcdr/12_Create_Restore_YAML.png[link=self, window=b
 +
 image::2026_spring/module-04-bcdr/13_Restore_Completed.png[link=self, window=blank, width=100%]
 
-. 左側メニューで **Virtualization（仮想化） -> VirtualMachines（仮想マシン）** に戻り、（**vmexamples-{user}** プロジェクト内で）**fedora02** 仮想マシンが復元されていることを確認します。**Created（作成済み）** の値がごく最近になっていることが確認できます。
+. 左側メニューで **Virtualization（仮想化） -> VirtualMachines（仮想マシン）** に戻り、 **vmexamples-{user}** プロジェクト内で **fedora02** 仮想マシンが復元されていることを確認します。**Created（作成済み）** の値がごく最近になっていることが確認できます。
 +
 image::2026_spring/module-04-bcdr/14_VM_Restored.png[link=self, window=blank, width=100%]
 
