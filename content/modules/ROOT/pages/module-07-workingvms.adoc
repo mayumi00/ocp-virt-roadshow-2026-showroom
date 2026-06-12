@@ -108,7 +108,7 @@ image::2026_spring/module-07-workingvms/07_Route_Navigation.png[link=self, windo
 .. **Target port（ターゲットポート）**: `80 -> 80 (TCP)`
 .. **Secure Route（セキュアルート）**: **有効（チェックを入れる）**
 .. **TLS termination（TLS終端）**: **Edge**
-.. **Insecure traffic（非セキュアトラフィック）**: **Redirect(リダイレクト)**
+.. **Insecure traffic（安全でないトラフィック）**: **Redirect(リダイレクト)**
 +
 image::2026_spring/module-07-workingvms/08_Create_Route.png[link=self, window=blank, width=100%]
 
@@ -271,7 +271,7 @@ image::2026_spring/module-07-workingvms/21_Route_Navigation.png[link=self, windo
 .. **Target port（ターゲットポート）**: `80 -> 80 (TCP)`
 .. **Secure Route（セキュアルート）**: **有効（チェックを入れる）**
 .. **TLS termination（TLS終端）**: **Edge**
-.. **Insecure traffic（非セキュアトラフィック）**: **Redirect（リダイレクト）**
+.. **Insecure traffic（安全でないトラフィック）**: **Redirect（リダイレクト）**
 +
 image::2026_spring/module-07-workingvms/22_Create_Route.png[link=self, window=blank, width=100%]
 
