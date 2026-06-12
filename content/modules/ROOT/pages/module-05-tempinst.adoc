@@ -64,7 +64,7 @@ image::2026_spring/module-05-tempinst/06_Edit_CPU_Mem.png[link=self, window=blan
 +
 image::2026_spring/module-05-tempinst/09_Scripts_CloudInit.png[link=self, window=blank, width=100%]
 
-. **Cloud-init** ダイアログが開いたら、**Configure via: Script（スクリプト経由で構成）** のラジオボタンをクリックし、デフォルトの YAML を以下の YAML スニペットで **置き換え（置換）** ます。
+. **Cloud-init** ダイアログが開いたら、**Script（スクリプト）** のラジオボタンをクリックし、デフォルトの YAML を以下の YAML スニペットで **置き換え** ます。
 +
 [source,yaml,role=execute]
 ----
@@ -82,8 +82,7 @@ userData: |-
 +
 image::2026_spring/module-05-tempinst/10_Cloud_Init_Script.png[link=self, window=blank, width=100%]
 
-. **Save（保存）** ボタンをクリックすると、緑色で **Saved（保存されました）
-** と表示されます。続いて **Apply（適用）** ボタンをクリックします。
+. **Save（保存）** ボタンをクリックすると、緑色で **Saved（保存されました）** と表示されます。続いて **Apply（適用）** ボタンをクリックします。
 
 . ここで左側メニューの **Catalog（カタログ）** 項目をクリックし、**Template catalog（テンプレートカタログ）** タブを選択してから、**User templates（ユーザーテンプレート）** を選択します。作成したテンプレートがタイルとして利用可能になっていることが確認できます。
 +
@@ -143,11 +142,11 @@ image::2026_spring/module-05-tempinst/17_Windows_2k22_Dialog.png[link=self, wind
 . このダイアログ内で：
 
 * 名前に `win-sysprep` と指定します。
-* **Boot from CD（CDから起動）** のチェックボックスを有効にします。
-* ドロップダウンメニューから **URL (creates PVC)** を選択します。
+* **Boot from CD（CDからブート）** のチェックボックスを有効にします。
+* ドロップダウンメニューから **URL (creates PVC/PVCの作成)** を選択します。
 * **image URL（イメージURL）** に以下を指定します： `https://catalog-item-assets.s3.us-east-2.amazonaws.com/qcow_images/WINSERV22.iso`
 * CDのディスクサイズを **5 GiB** に縮小します。
-* **Disk source（ディスクソース）** は **Blank（空）** のままとし、サイズはデフォルト値の **60 GiB** に設定します。
+* **Disk source（ディスクソース）** は **Blank（空白）** のままとし、サイズはデフォルト値の **60 GiB** に設定します。
 * **Mount Windows drivers disk（Windowsドライバーディスクのマウント）** のチェックボックスが有効になっていることを確認します。**これは、VirtIO用のドライバーを提供するものであり、Windowsシステムをインストールするために必須となります。**
 
 . オプションを入力したら、画面下部にある **Customize VirtualMachine（VirtualMachineのカスタマイズ）** ボタンをクリックして、テンプレートの構成を続行します。
@@ -509,7 +508,7 @@ image::2026_spring/module-05-tempinst/29_Clone_Menu.png[link=self, window=blank,
 
 . これが保存されると、将来的に Windows VM を迅速に作成するために使用できるようになります。
 
-. 再び **Virtualization -> Catalog（カタログ）** メニュー項目に戻り、**Disk source（ディスクソース）** として **PVC (clone PVC)** オプションを選択し、クローンする **PVC name（PVC 名）** として **windows-2k22-sysprep-template** PVC を選択することで、このクローンされた PVC をブートソースとして使用し、新しい仮想マシンをクイック作成できます。
+. 再び **Virtualization -> Catalog（カタログ）** メニュー項目に戻り、**Microsoft Windows Server 2022 VM** タイルをクリックします。**Disk source（ディスクソース）** として **PVC (clone PVC)/PVC（PVCクローン作成）** オプションを選択し、ネームスペースとして **vmexamples-{user}** を選択します。 クローンする **PVC name（PVC 名）** として **windows-2k22-sysprep-template** PVC を選択することで、このクローンされた PVC をブートソースとして使用し、新しい仮想マシンをクイック作成できます。
 +
 image::2026_spring/module-05-tempinst/30_Windows_Template.png[link=self, window=blank, width=100%]
 +
