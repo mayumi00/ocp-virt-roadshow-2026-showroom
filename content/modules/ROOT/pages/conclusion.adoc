@@ -21,7 +21,7 @@ image::2025_spring/conclusion/00_Thank_You.png[link=self, window=blank, width=10
 * イノベーションのための一貫した基盤のデプロイについて学ぶことができます。
 * 無料のデモや仮想マイグレーションアセスメント（Virtual Migration Assessment）を通じて、どのように開始すればよいかを学べます。
 
-詳細については、 https://www.redhat.com/en/resources/15-reasons-adopt-openshift-virtualization-ebook[[こちら^] のリンクをクリックするか、以下のQRコードをスキャンしてください。
+詳細については、 https://www.redhat.com/en/resources/15-reasons-adopt-openshift-virtualization-ebook[こちら^] のリンクをクリックするか、以下のQRコードをスキャンしてください。
 
 image::2025_spring/conclusion/01_Ebook.png[link=self, window=blank, width=50%]
 
