@@ -153,7 +153,7 @@ image::2026_spring/module-05-tempinst/17_Windows_2k22_Dialog.png[link=self, wind
 +
 image::2026_spring/module-05-tempinst/18_Windows_2k22_Parameters.png[link=self, window=blank, width=100%]
 
-. **Customize and create VirtualMachine（仮想マシンのカスタマイズと作成）** 画面で、**Scripts（スクリプト）** タブをクリックし、下へスクロールして **Sysprep** セクションに移動し、**Edit（編集）** ボタンをクリックします。
+. **Customize and create VirtualMachine（VirtualMachineのカスタマイズと作成）** 画面で、**Scripts（スクリプト）** タブをクリックし、下へスクロールして **Sysprep** セクションに移動し、**Edit（編集）** ボタンをクリックします。
 +
 image::2026_spring/module-05-tempinst/20_Customize_Scripts.png[link=self, window=blank, width=100%]
 
