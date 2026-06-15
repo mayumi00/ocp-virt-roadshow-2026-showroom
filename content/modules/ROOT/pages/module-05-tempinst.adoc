@@ -96,7 +96,7 @@ image::2026_spring/module-05-tempinst/12_Quick_Create_Template.png[link=self, wi
 +
 image::2026_spring/module-05-tempinst/13_VM_From_Template.png[link=self, window=blank, width=100%]
 
-. 上部にある **Console（コンソール）** タブをクリックし、提供されている **Guest login credentials（ゲストログイン資格情報）** と、**Copy** および **Paste to console（コンソールに貼り付け）** ボタンを使用して、仮想マシンのコンソールにログインします。
+. 上部にある **Console（コンソール）** タブをクリックし、提供されている **Guest login credentials（ゲストログイン認証情報）** と、**Copy** および **Paste to console（コンソールに貼り付け）** ボタンを使用して、仮想マシンのコンソールにログインします。
 +
 image::2026_spring/module-05-tempinst/14_VM_Console.png[link=self, window=blank, width=100%]
 
