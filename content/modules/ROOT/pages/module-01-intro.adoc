@@ -181,7 +181,7 @@ image::2026_spring/module-01-intro/21_Storage_Tab.png[link=self, window=blank, w
 +
 image::2026_spring/module-01-intro/22_Network_Tab.png[link=self, window=blank, width=100%]
 +
-VMがクイック作成されると、デフォルトで *masquerade（マスカレード）* タイプの *Pod Networking（ポッドネットワーク）* 上のインターフェースが作成されます。これにより、VMがSDNに接続され、VMからOpenShiftクラスター外部の世界へのエグレス（送信）が提供されます。クラスター内の他のVMやポッドは、このインターフェースを使用して仮想マシンにアクセスできます。
+VMがクイック作成されると、デフォルトで *masquerade（マスカレード）* タイプの *Pod Networking（Podネットワーク）* 上のインターフェースが作成されます。これにより、VMがSDNに接続され、VMからOpenShiftクラスター外部の世界へのegress（送信）が提供されます。クラスター内の他のVMやポッドは、このインターフェースを使用して仮想マシンにアクセスできます。
 +
 さらに、SDNに接続されたVMは、Route（ルート）やロードバランサー（LoadBalancer）タイプのService（サービス）を使用して外部からアクセスすることや、Network Attachment Definition（ネットワーク接続定義）やユーザー定義ネットワーク（UDN）によってVLANや外部ネットワークを定義して直接アタッチすることもできます。これらのオプションについては、後ほど詳しく探索します。
 
